@@ -1,0 +1,45 @@
+{
+  "client": "claude",
+  "name": "platforms-marketplace",
+  "owner": {
+    "name": "Luke Steuber"
+  },
+  "plugins": [
+    {
+      "agents": [
+        "platform-recon",
+        "package-auditor",
+        "tv-accessibility-reviewer",
+        "docs-curator"
+      ],
+      "description": "Portable skills and read-only review agents for platform delivery and publishing.",
+      "license": "MIT",
+      "name": "platforms",
+      "repository": "https://github.com/actually-useful-ai/platforms",
+      "skills": [
+        "platforms",
+        "platforms-intake",
+        "platforms-release-plan",
+        "platforms-store-assets",
+        "platforms-tv-accessibility",
+        "platforms-pebble-watchface",
+        "platforms-pebble-watchapp",
+        "platforms-android",
+        "platforms-fire-tablet",
+        "platforms-fire-tv",
+        "platforms-android-tv",
+        "platforms-vega",
+        "platforms-webos",
+        "platforms-tizen",
+        "platforms-roku",
+        "platforms-web-kiosk",
+        "platforms-kdp-book",
+        "platforms-kdp-cover",
+        "platforms-kdp-metadata",
+        "platforms-epub-accessibility"
+      ],
+      "source": "./",
+      "version": "0.1.0"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "files": [
+    {
+      "executable": false,
+      "mode": "0644",
+      "path": ".agents/plugins/marketplace.json",
+      "sha256": "07df9f318d83db6d62ae5e89db32dac250ff10259ce5431af825c895bbcbfbb3"
+    },
+    {
+      "executable": false,
+      "mode": "0644",
+      "path": ".claude-plugin/marketplace.json",
+      "sha256": "706563098a8ded5ccfcde34401c3a7e7f338c5ffe684d990ec388186116b2bc8"
+    },
+    {
+      "executable": false,
+      "mode": "0644",
+      "path": ".claude-plugin/plugin.json",
+      "sha256": "960e6aaa94c8b5737fbcdcfa7778671c3d97ed05313f71b1f66937b45d867698"
+    },
+    {
+      "executable": false,
+      "mode": "0644",
+      "path": ".codex-plugin/plugin.json",
+      "sha256": "c62a778f25af3be376dfa5f9703e52c7abb9c0bd2bee76eb6a035272d38d2e3b"
+    },
+    {
+      "executable": false,
+      "mode": "0644",
+      "path": ".cursor-plugin/marketplace.json",
+      "sha256": "54442fbd7f016fcb0effccdd46c1b84281fb521341eb9c4782650eacfcdd648c"
+    },
+    {
+      "executable": false,
+      "mode": "0644",
+      "path": ".cursor-plugin/plugin.json",
+      "sha256": "50ff6c94203f46a1ac763845798deea0ffec108c2f64f6b49db40f93a7e5595f"
+    },
+    {
+      "executable": false,
+      "mode": "0644",
+      "path": "suite.toml",
+      "sha256": "a08f5314abc1132751ccd01b487d9b729223c9ef7ac449481ad6d0eb4856aad7"
+    }
+  ],
+  "suite_version": "0.1.0"
+}

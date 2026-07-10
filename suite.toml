@@ -1,0 +1,89 @@
+schema_version = 1
+
+[suite]
+id = "platforms"
+name = "Platforms and Publishing Suite"
+description = "Portable skills and read-only review agents for platform delivery and publishing."
+version = "0.1.0"
+author = "Luke Steuber"
+repository = "https://github.com/actually-useful-ai/platforms"
+license = "MIT"
+
+[clients]
+supported = ["claude", "cursor", "codex", "agents"]
+
+[[skills]]
+id = "platforms"
+
+[[skills]]
+id = "platforms-intake"
+
+[[skills]]
+id = "platforms-release-plan"
+
+[[skills]]
+id = "platforms-store-assets"
+
+[[skills]]
+id = "platforms-tv-accessibility"
+
+[[skills]]
+id = "platforms-pebble-watchface"
+
+[[skills]]
+id = "platforms-pebble-watchapp"
+
+[[skills]]
+id = "platforms-android"
+
+[[skills]]
+id = "platforms-fire-tablet"
+
+[[skills]]
+id = "platforms-fire-tv"
+
+[[skills]]
+id = "platforms-android-tv"
+
+[[skills]]
+id = "platforms-vega"
+
+[[skills]]
+id = "platforms-webos"
+
+[[skills]]
+id = "platforms-tizen"
+
+[[skills]]
+id = "platforms-roku"
+
+[[skills]]
+id = "platforms-web-kiosk"
+
+[[skills]]
+id = "platforms-kdp-book"
+
+[[skills]]
+id = "platforms-kdp-cover"
+
+[[skills]]
+id = "platforms-kdp-metadata"
+
+[[skills]]
+id = "platforms-epub-accessibility"
+
+[[agents]]
+id = "platform-recon"
+read_only = true
+
+[[agents]]
+id = "package-auditor"
+read_only = true
+
+[[agents]]
+id = "tv-accessibility-reviewer"
+read_only = true
+
+[[agents]]
+id = "docs-curator"
+read_only = true

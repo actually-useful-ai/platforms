@@ -1,0 +1,78 @@
+schema_version = 1
+
+[[sources]]
+repository = "https://github.com/android/skills"
+revision = "79bee216c47432cbdb576a9bf1a62b65bee56f8f"
+license = "Apache-2.0"
+use = "evaluated"
+code_copy_allowed = true
+
+[[sources]]
+repository = "https://github.com/stefanoverna/pebble-watchapp-skill"
+revision = "9df8d1a701946475fb2d4793b334233493063579"
+license = "MIT"
+use = "evaluated"
+code_copy_allowed = true
+
+[[sources]]
+repository = "https://github.com/nikmcfly/kindle-book-skill"
+revision = "aa66cdf586b373ca0b771ec49c4b377ee5b99080"
+license = "MIT"
+use = "evaluated"
+code_copy_allowed = true
+
+[[sources]]
+repository = "https://github.com/jessl2juice/kindlepub"
+revision = "46b2217f4aad9187e1ea33efabba28cf732417a9"
+license = "MIT"
+use = "evaluated"
+code_copy_allowed = true
+
+[[sources]]
+repository = "https://github.com/arturseo-geo/ebook-publishing-skill"
+revision = "8c234813dfee2846703769ac821f0a9aae42a4b6"
+license = "MIT"
+use = "evaluated"
+code_copy_allowed = true
+
+[[sources]]
+repository = "https://github.com/ericmigi/pebble-watchface-skill"
+revision = "bb2ade8eec004343611dc6b2b31b5248112b7140"
+license = "NOASSERTION"
+use = "research-only"
+code_copy_allowed = false
+
+[[sources]]
+repository = "https://github.com/priyankark/pebble-wf-agent-skill"
+revision = "6477043b6f923f737750d5145bb0634f4a2b2c18"
+license = "NOASSERTION"
+use = "research-only"
+code_copy_allowed = false
+
+[[sources]]
+repository = "https://github.com/coredevices/pebble-watchface-agent-skill"
+revision = "b91bf6ba7ed21c268ac9824472eaa58b6bfd5493"
+license = "NOASSERTION"
+use = "research-only"
+code_copy_allowed = false
+
+[[sources]]
+repository = "https://github.com/dot-Justin/pebble-watchapp-agent-skill"
+revision = "8bb8e8bdb3262a8b076ba2f9af4148f709ffe62c"
+license = "NOASSERTION"
+use = "research-only"
+code_copy_allowed = false
+
+[[sources]]
+repository = "https://github.com/nikmcfly/kindle-cover-skill"
+revision = "954eb8efc270397a635b92088c5a6eea815bf938"
+license = "NOASSERTION"
+use = "research-only"
+code_copy_allowed = false
+
+[[sources]]
+repository = "https://github.com/joshyattridge/amazon-kdp-skill"
+revision = "9194489d23ffd287f5a9fbf33dc22cbb4132b3d2"
+license = "NOASSERTION"
+use = "research-only"
+code_copy_allowed = false

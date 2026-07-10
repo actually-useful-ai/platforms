@@ -1,0 +1,125 @@
+{
+  "$id": "https://github.com/actually-useful-ai/platforms/blob/main/schemas/suite.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Canonical model for suite identity, client support, and component inventory.",
+  "properties": {
+    "agents": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "read_only": {
+            "const": true
+          }
+        },
+        "required": [
+          "id",
+          "read_only"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "clients": {
+      "additionalProperties": false,
+      "properties": {
+        "supported": {
+          "items": {
+            "enum": [
+              "agents",
+              "claude",
+              "codex",
+              "cursor"
+            ]
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "supported"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "skills": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "suite": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "description": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+          "type": "string"
+        },
+        "license": {
+          "const": "MIT"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "repository": {
+          "format": "uri",
+          "pattern": "^https://",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "author",
+        "description",
+        "id",
+        "license",
+        "name",
+        "repository",
+        "version"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "suite",
+    "clients",
+    "skills",
+    "agents"
+  ],
+  "title": "Platforms Suite Metadata",
+  "type": "object"
+}
