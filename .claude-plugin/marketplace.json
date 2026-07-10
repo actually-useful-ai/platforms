@@ -12,7 +12,7 @@
       "description": "Portable skills and read-only review agents for platform delivery and publishing.",
       "name": "platforms",
       "source": "./",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }

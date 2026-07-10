@@ -15,7 +15,8 @@ This repository is maintained by Luke Steuber.
 
 - `suite.toml` alone defines suite identity, version, author, repository, license, supported clients, and component inventory.
 - `sources.lock.toml` pins evaluated upstream revisions and reuse boundaries.
-- `skills/` will contain canonical skill prose after the bootstrap milestone.
+- `skills/` contains canonical skill prose.
+- `src/platforms/` contains the CLI, adapters, and KDP pipeline.
 - Installed skill directories are read-only projections.
 
 ## Generated-file policy
@@ -35,9 +36,10 @@ Change `suite.toml` and run `python3 tools/generate_manifests.py`. Generation mu
 ## Verification
 
 ```sh
-python3 -m unittest discover -s tests -v
+PYTHONPATH=src:tools:. python3 -m unittest discover -s tests -v
 python3 tools/generate_manifests.py --check
 python3 tools/check_drift.py --help
+PYTHONPATH=src:tools:. python3 -m platforms detect --project . --json
 ```
 
 Do not commit credentials, vendor SDKs, caches, installed projections, or content copied from no-license sources. Do not push unless Luke explicitly requests it.

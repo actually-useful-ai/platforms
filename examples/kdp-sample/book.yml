@@ -1,0 +1,18 @@
+title: "Ambient Notes"
+slug: ambient-notes
+version: "0.1.0"
+language: en
+contributors: ["Luke Steuber"]
+manuscript: manuscript.md
+trim_inches: [6.0, 9.0]
+page_count_estimate: 120
+paper: white
+bleed_inches: 0.125
+keywords: ["accessibility", "publishing"]
+categories: ["Computers"]
+description: "Sample manuscript for the platforms KDP pipeline."
+identifiers:
+  isbn: "9798000000000"
+accessibility:
+  summary: "Semantic headings and image alternatives required."
+  hazards: []

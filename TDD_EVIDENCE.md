@@ -151,3 +151,21 @@ python3 tools/check_drift.py --help
 ```
 
 Both commands completed with exit code 0; manifest check reported that generated files were current.
+
+## Cycle 4: shared CLI and adapters
+
+RED tests added first for process runner, adapter contract, and CLI commands (`tests/test_process.py`, `tests/test_adapters.py`, `tests/test_cli.py`).
+
+GREEN after implementing `src/platforms/` with secure `run_allowlisted`, adapter registry, and CLI handlers.
+
+## Cycle 5: KDP pipeline and inventory
+
+RED/GREEN for `tests/test_kdp_pipeline.py`, Ambient Time fixture detection, and inventory presence.
+
+Full-suite evidence after 0.2.0:
+
+```sh
+PYTHONPATH=src:tools:. python3 -m unittest discover -s tests -v
+```
+
+Result: 37 tests passed with zero failures or errors.

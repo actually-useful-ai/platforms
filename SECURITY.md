@@ -4,7 +4,7 @@ Luke Steuber maintains the security policy for the Platforms and Publishing Suit
 
 ## Supported versions
 
-The latest tagged minor release receives security updates. Version 0.1.x is the currently supported line.
+The latest tagged minor release receives security updates. Version 0.2.x is the currently supported line.
 
 ## Reporting a vulnerability
 
@@ -22,4 +22,8 @@ Luke will acknowledge a complete report as soon as practical, assess impact, coo
 
 ## Scope notes
 
-The bootstrap tools read local metadata and optional installed skill roots. `tools/check_drift.py` is intentionally read-only. `tools/generate_manifests.py` writes only the documented generated files under the selected repository root. Neither tool requires network access, credentials, or third-party Python packages.
+- `tools/check_drift.py` is read-only against installed projections.
+- `tools/generate_manifests.py` writes only documented generated files under the repository root and refuses symlink escapes.
+- The `platforms` CLI rejects project paths containing `..`, confines adapter writes under project `dist/`, and runs external tools through allowlisted argv arrays with `shell=False`.
+- KDP and store workflows stop at upload-ready artifacts and human checklists. The suite does not store store credentials, automate login, or submit packages.
+- Network access is not required for core validation; optional external validators run only when installed locally.

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/actually-useful-ai/platforms/schemas/book.schema.json",
+  "title": "KDP book.yml",
+  "type": "object",
+  "required": ["title", "manuscript", "language", "contributors", "trim_inches"],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "slug": { "type": "string" },
+    "version": { "type": "string" },
+    "language": { "type": "string", "minLength": 2 },
+    "contributors": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "manuscript": { "type": "string" },
+    "trim_inches": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "page_count_estimate": { "type": "integer", "minimum": 1 },
+    "paper": { "type": "string" },
+    "bleed_inches": { "type": "number" },
+    "keywords": { "type": "array", "items": { "type": "string" } },
+    "categories": { "type": "array", "items": { "type": "string" } },
+    "description": { "type": "string" },
+    "identifiers": { "type": "object", "additionalProperties": { "type": "string" } },
+    "accessibility": { "type": "object" }
+  },
+  "additionalProperties": true
+}

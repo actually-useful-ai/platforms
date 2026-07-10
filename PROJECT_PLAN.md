@@ -1,71 +1,49 @@
 # Project Plan
 
 Maintainer: Luke Steuber  
-Current suite version: 0.1.0
+Current suite version: 0.2.0
 
 ## Objective
 
-Build one canonical, portable suite for platform delivery and publishing workflows. The suite will project the same reviewed skills and read-only agents into supported clients without allowing installed copies or generated manifests to become competing sources of truth.
+Build one canonical, portable suite for platform delivery and publishing workflows. The suite projects reviewed skills and read-only agents into supported clients and provides a deterministic CLI for detect → plan → doctor → build → validate → package → report, with human upload/submission gates.
 
-## Current milestone: control-plane bootstrap
+## Completed milestones
 
-Status: complete in version 0.1.0
+### Control-plane bootstrap (0.1.0)
 
-- Define identity, support, and component inventory in `suite.toml`.
-- Document the metadata model in `schemas/suite.schema.json`.
-- Generate deterministic client and marketplace manifests.
-- Generate a timestamp-free SHA-256 integrity lock.
-- Detect installed projection drift without changing user files.
-- Validate official client component shapes against enabled local exemplars.
-- Fail closed on unsafe generated paths and unreadable canonical metadata.
-- Pin evaluated source revisions and license boundaries.
-- Establish strict test-first evidence and contributor guidance.
+- `suite.toml` authority, schemas, generated manifests, lock, drift checks, provenance.
+
+### Shared CLI and adapters (0.2.0)
+
+- Typed `src/platforms/` package with secure process runner.
+- Adapter contract for kdp, pebble, android, fire-tablet, fire-tv, android-tv, vega, webos, tizen, roku, web-kiosk.
+- Explicit track states; later states are never inferred from earlier ones.
+- KDP upload-bundle pipeline from `book.yml` (EPUB, cover geometry, validation, checklist; no submit).
+- Canonical skill and agent prose for the full inventory.
+- Ambient Time used read-only as an acceptance fixture for detection.
 
 ## Architecture
 
 ```text
 suite.toml
     |
-    +-- tools/generate_manifests.py
-    |       +-- client manifests
-    |       +-- marketplace manifests
-    |       +-- dist/manifest.lock.json
-    |
-    +-- tools/check_drift.py
-            +-- canonical skills/
-            +-- optional installed roots (read-only)
+    +-- tools/generate_manifests.py --> client manifests + lock
+    +-- tools/check_drift.py --> installed projection drift
+    +-- src/platforms/ --> CLI + adapters + kdp pipeline
+    +-- skills/ --> canonical skill prose
+    +-- agents/ --> read-only agent definitions
 ```
 
-Rules:
+## Outstanding
 
-1. `suite.toml` is the sole metadata authority.
-2. Generated JSON and the lock are committed but never hand-edited.
-3. Supported-client subsets determine generated files, stale-file cleanup, and lock entries.
-4. Client component fields use official relative directory paths or auto-discovery.
-5. Generated writes remain inside the repository, reject symlinks, and replace files atomically.
-6. Canonical skill prose will live under `skills/` when implementation begins.
-7. Installed roots are projections, never inputs to generation.
-8. Source content may be adapted only when its license permits reuse.
-9. No-license and excluded material permits no reuse.
+- Deeper device packaging (real `.pbw`/APK/ipk builds) once toolchains are present.
+- Tizen/Vega packaging beyond preflight when SDKs and disk space allow.
+- Public GitHub publish of `actually-useful-ai/platforms` after explicit approval.
+- Cross-client installation verification on live Claude/Cursor/Codex roots.
 
-## Planned components
+## Out of scope
 
-The canonical inventory contains 20 skills spanning intake, planning, store assets, accessibility, Pebble, Android and Amazon devices, television platforms, web kiosks, KDP, and EPUB. It also contains four read-only agents for reconnaissance, package auditing, TV accessibility review, and documentation curation.
-
-The exact component identifiers belong in `suite.toml`; this document intentionally avoids duplicating that authority.
-
-## Next milestones
-
-- Write original canonical skill prose with accessibility requirements.
-- Add the four read-only agent definitions.
-- Validate each client’s installation and discovery behavior.
-- Add packaging and release workflows after component content exists.
-- Add end-to-end projection fixtures for supported clients.
-
-## Out of scope for the bootstrap
-
-- Vendor SDKs or generated SDK copies
-- Credentials, secrets, signing assets, or store accounts
-- Third-party code copied from no-license sources
-- Functional skill or agent prose
-- Publishing or pushing this repository
+- Automated KDP or store login/submit
+- Credentials, signing secrets, or vendor SDK copies in-repo
+- Modifying Ambient Time uncommitted work
+- Reuse of no-license third-party skill prose

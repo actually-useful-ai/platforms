@@ -1,90 +1,85 @@
 # Platforms and Publishing Suite
 
-`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.1.0 establishes the control plane: canonical metadata, deterministic manifests, source provenance, and read-only drift reporting.
+`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.2.0 adds the shared CLI, platform adapters, KDP upload-bundle pipeline, and canonical skill/agent prose.
 
-Skill prose and agent instructions are intentionally deferred. The inventories in `suite.toml` describe planned components; they do not imply that those components are implemented yet.
+## What it does
 
-## Canonical metadata
+- Detects likely targets for a project
+- Plans and diagnoses toolchains per platform
+- Builds and validates artifacts into confined output roots
+- Stages store packages and human upload checklists
+- Stops before automated store login or publish (especially KDP)
 
-`suite.toml` is the sole authority for:
+## Requirements
 
-- suite identity, version, author, repository, and license;
-- supported clients;
-- the 20 planned portable skills; and
-- the four planned read-only agents.
-
-`schemas/suite.schema.json` documents that model. Runtime validation uses only the Python standard library so the tools work without installing dependencies.
-
-## Requirements and setup
-
-- Python 3.11 or newer (`tomllib` is required)
+- Python 3.11 or newer
 - Git
+- Optional tools depending on target: `pandoc`, `typst`, `epubcheck`, `ace`, `pebble`, `adb`, `ares-package`, `tizen`, Vega/Kepler CLI
 
-Clone the repository and run the standard-library test suite:
+## Setup
 
 ```sh
 git clone https://github.com/actually-useful-ai/platforms.git
 cd platforms
-python3 -m unittest discover -s tests -v
+PYTHONPATH=src:tools:. python3 -m unittest discover -s tests -v
 ```
 
-No package installation is required for the bootstrap tools.
+Optional editable install:
 
-## Generated files
+```sh
+pip install -e .
+```
 
-Run:
+## CLI
+
+```sh
+PYTHONPATH=src:tools:. python3 -m platforms detect --project /path/to/project --json
+PYTHONPATH=src:tools:. python3 -m platforms plan --project . --platform web-kiosk --json
+PYTHONPATH=src:tools:. python3 -m platforms doctor --project . --platform kdp --json
+PYTHONPATH=src:tools:. python3 -m platforms build --project examples/kdp-sample --platform kdp --json
+PYTHONPATH=src:tools:. python3 -m platforms validate --project examples/kdp-sample --platform kdp --json
+PYTHONPATH=src:tools:. python3 -m platforms package --project examples/kdp-sample --platform kdp --json
+PYTHONPATH=src:tools:. python3 -m platforms report --project examples/kdp-sample --platform kdp --json
+PYTHONPATH=src:tools:. python3 -m platforms drift
+```
+
+Commands refuse project paths containing `..` segments. Adapters run allowlisted argv arrays with `shell=False`.
+
+## KDP pipeline
+
+Source of truth: `book.yml` plus a Markdown manuscript.
+
+```sh
+PYTHONPATH=src:tools:. python3 -m platforms build --project examples/kdp-sample --platform kdp --json
+```
+
+Output lands in `dist/<slug>/<version>/` with EPUB, print PDF or pending marker, cover SVG/spec, metadata, checksums, validation report, provenance, and `UPLOAD_CHECKLIST.md`. This suite never logs into KDP and never submits.
+
+## Canonical metadata
+
+`suite.toml` is the sole authority for identity, version, supported clients, 20 skills, and four read-only agents. Run:
 
 ```sh
 python3 tools/generate_manifests.py
-```
-
-The generator writes:
-
-- `.claude-plugin/plugin.json`
-- `.claude-plugin/marketplace.json`
-- `.cursor-plugin/plugin.json`
-- `.cursor-plugin/marketplace.json`
-- `.codex-plugin/plugin.json`
-- `.agents/plugins/marketplace.json`
-- `dist/manifest.lock.json`
-
-Do not edit these files by hand. Edit `suite.toml`, regenerate, review the diff, and commit the canonical metadata and generated outputs together. The generator never creates or changes `SKILL.md` prose.
-
-Only clients listed in `clients.supported` receive manifests and lock entries. Removing client support removes its known generated manifests on the next generation run. Claude uses component auto-discovery, while Cursor and Codex use official relative directory-path fields. Planned component names stay in `suite.toml` and the lock inventory rather than client-reserved fields.
-
-Check for generated drift without writing:
-
-```sh
 python3 tools/generate_manifests.py --check
-```
-
-The check detects byte, file-type, symlink, stale-client, and permission-mode drift. Generation refuses symlinked output files or parents and uses atomic replacement inside the repository.
-
-The lock records normalized POSIX paths, SHA-256 hashes, suite version, supported clients, planned inventory, and file modes. It contains no timestamps, so identical inputs produce identical bytes.
-
-## Installed-skill drift
-
-Compare canonical skills with any optional installed roots:
-
-```sh
-python3 tools/check_drift.py ~/.claude/skills ~/.codex/skills
-```
-
-The command emits sorted JSON and never edits installed files. Missing, changed, or extra managed projections produce exit code 1. Invalid or unreadable canonical metadata fails closed with exit code 2 and a distinct error result. Unmanaged files do not affect the exit code. Agent-managed cache paths, generated cache content inside skills, and `~/.cursor/skills-cursor` are intentionally ignored.
-
-Calling the command with no installed roots returns a clean report:
-
-```sh
 python3 tools/check_drift.py
 ```
 
+## Skills and agents
+
+Canonical prose lives under `skills/*/SKILL.md` and `agents/*.md`. See:
+
+- [Platform matrix](docs/platform-matrix.md)
+- [Adding a platform](docs/adding-a-platform.md)
+- [Accessibility guide](docs/accessibility.md)
+
 ## Accessibility
 
-Accessibility is a first-order suite requirement, including dedicated TV and EPUB accessibility components. Future skill prose must account for keyboard and remote navigation, focus visibility, screen-reader semantics, captions, reduced motion, readable contrast, reflow, and platform-specific assistive technology behavior.
+Accessibility is a first-order requirement: keyboard/remote navigation, focus visibility, screen-reader semantics, captions, reduced motion, contrast, reflow, and platform-specific assistive behavior.
 
 ## Source provenance
 
-`sources.lock.toml` pins every evaluated source used in planning. `ATTRIBUTIONS.md` records licenses and usage boundaries. Sources without a published license are research-only, and this release copies no third-party code or prose.
+`sources.lock.toml` pins evaluated sources. `ATTRIBUTIONS.md` records licenses and reuse boundaries. No-license material is research-only.
 
 ## Documentation
 
@@ -96,7 +91,7 @@ Accessibility is a first-order suite requirement, including dedicated TV and EPU
 
 ## License
 
-This project ships under the [MIT License](LICENSE). In plain English: have fun, do not sue, keep the copyright header intact, and give credit where it is due.
+This project ships under the [MIT License](LICENSE).
 
 ## Author and maintainer
 
@@ -115,4 +110,4 @@ Speech-language pathologist · Linguist · Product nerd · Occasional code greml
 | Newsletter | <https://lukesteuber.substack.com/> |
 | Tip jar | <https://usefulai.lemonsqueezy.com/buy/bf6ce1bd-85f5-4a09-ba10-191a670f74af> |
 
-All code, documentation, diagrams, haikus, and rogue ASCII art in this repository are released under the MIT License by Luke Steuber. Forks and remixes must preserve required copyright and license notices.
+All code, documentation, diagrams, haikus, and rogue ASCII art in this repository are released under the MIT License by Luke Steuber.

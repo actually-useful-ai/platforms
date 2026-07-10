@@ -1,7 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "platforms"
+version = "0.2.0"
+description = "Portable platform delivery and publishing toolkit"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Luke Steuber", email = "luke@lukesteuber.com" }]
+dependencies = []
+
+[project.scripts]
+platforms = "platforms.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.pytest.ini_options]
 addopts = "-ra"
 testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["tools"]
+source = ["tools", "platforms"]
