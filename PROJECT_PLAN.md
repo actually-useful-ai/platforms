@@ -36,10 +36,10 @@ suite.toml
 
 ## Outstanding
 
+- Create and push the public GitHub repository `actually-useful-ai/platforms` once org create permissions are available for the active `gh` token (local `origin` is already configured).
 - Deeper device packaging (real `.pbw`/APK/ipk builds) once toolchains are present.
 - Tizen/Vega packaging beyond preflight when SDKs and disk space allow.
-- Public GitHub publish of `actually-useful-ai/platforms` after explicit approval.
-- Cross-client installation verification on live Claude/Cursor/Codex roots.
+- Ongoing cross-client drift checks after skill edits.
 
 ## Out of scope
 

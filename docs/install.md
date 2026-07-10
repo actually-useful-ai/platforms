@@ -2,9 +2,26 @@
 
 Canonical skills live in this repository under `skills/`. Installed copies are projections.
 
+## Local projection sync
+
+From the repository root:
+
+```sh
+./scripts/install-projections.sh
+```
+
+Default destinations:
+
+- `~/.claude/skills`
+- `~/.cursor/skills`
+- `~/.codex/skills`
+- `~/.agents/skills`
+
+The script replaces only managed `platforms*` skill directories, then runs `tools/check_drift.py`.
+
 ## Claude
 
-Point the plugin/marketplace at this repository or copy `skills/*` into a managed Claude skills root, then run:
+Point the plugin/marketplace at this repository or sync with the installer above, then run:
 
 ```sh
 python3 tools/check_drift.py ~/.claude/skills
