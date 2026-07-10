@@ -65,6 +65,11 @@ python3 tools/generate_manifests.py --check
 python3 tools/check_drift.py
 ```
 
+## Ambient Time fixture
+
+See [Ambient Time fixture](docs/ambient-time-fixture.md) for the read-only acceptance
+project, test-pack face ids, and smoke commands.
+
 ## Skills and agents
 
 Canonical prose lives under `skills/*/SKILL.md` and `agents/*.md`. See:
@@ -72,6 +77,7 @@ Canonical prose lives under `skills/*/SKILL.md` and `agents/*.md`. See:
 - [Platform matrix](docs/platform-matrix.md)
 - [Adding a platform](docs/adding-a-platform.md)
 - [Accessibility guide](docs/accessibility.md)
+- [Client installation](docs/install.md)
 
 ## Accessibility
 

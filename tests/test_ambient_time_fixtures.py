@@ -8,6 +8,12 @@ import unittest
 from pathlib import Path
 
 from platforms.adapters.registry import get_adapter
+from platforms.fixtures.ambient_time import (
+    TEST_PACK_FACE_IDS,
+    load_listed_platforms,
+    manifest_face_ids,
+    www_manifest_path,
+)
 
 AMBIENT = Path("/Users/luke/workspace/ambient-time")
 
@@ -31,3 +37,25 @@ class AmbientTimeFixtureTests(unittest.TestCase):
     def test_vega_stays_explicit_only(self) -> None:
         detection = get_adapter("vega").detect(AMBIENT)
         self.assertFalse(detection.matched)
+
+    def test_platforms_yml_lists_expected_targets(self) -> None:
+        listed = set(load_listed_platforms(AMBIENT))
+        self.assertTrue(
+            {
+                "web-kiosk",
+                "android",
+                "fire-tv",
+                "webos",
+                "tizen",
+                "pebble",
+            }.issubset(listed)
+        )
+        self.assertNotIn("vega", listed)
+
+    def test_full_www_contains_test_pack_faces(self) -> None:
+        manifest = www_manifest_path(AMBIENT, test_pack=False)
+        if not manifest.is_file():
+            self.skipTest("appstores/dist/www/manifest.json not built yet")
+        ids = manifest_face_ids(manifest)
+        missing = [face_id for face_id in TEST_PACK_FACE_IDS if face_id not in ids]
+        self.assertEqual(missing, [], f"test pack faces missing from full www: {missing}")

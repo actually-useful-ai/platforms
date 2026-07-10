@@ -13,6 +13,7 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 - Canonical prose for all 20 skills and four read-only agents.
 - Example KDP sample, book schema, platform matrix, accessibility, and adding-a-platform docs.
 - Ambient Time read-only fixture detection tests.
+- Ambient Time fixture helpers and docs for the cross-platform test-pack contract (`tv-dial`, `tv-cosmic`, `tv-word-grid`, `clk-binary`).
 
 ### Security
 
