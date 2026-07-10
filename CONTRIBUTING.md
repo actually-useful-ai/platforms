@@ -42,6 +42,10 @@ python3 tools/generate_manifests.py
 
 Never hand-edit generated manifests or `dist/manifest.lock.json`. Commit the canonical edit and regenerated files together. The generator must never write `SKILL.md` prose.
 
+Client component fields must follow enabled local exemplar conventions: use auto-discovery where supported or relative directory paths such as `./skills/`. Do not place component-name inventories in reserved client fields. Keep inventory in `suite.toml` and the generated lock.
+
+Generated destinations must remain inside the repository. Do not weaken symlink rejection, atomic replacement, file-mode checks, or stale unsupported-client cleanup.
+
 ## Source and license policy
 
 Pin evaluated sources in `sources.lock.toml` and explain attribution in `ATTRIBUTIONS.md`. Do not copy code, prose, media, or other protected content from a source without a compatible published license. No-license sources are research-only.

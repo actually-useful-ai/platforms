@@ -24,6 +24,20 @@ _CACHE_COMPONENTS = {
     "cache",
     "caches",
 }
+_IGNORED_PROJECTION_DIRECTORIES = {
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "__pycache__",
+}
+_IGNORED_PROJECTION_FILES = {
+    ".coverage",
+    ".DS_Store",
+}
+_IGNORED_PROJECTION_SUFFIXES = {
+    ".pyc",
+    ".pyo",
+}
 
 
 def is_ignored_root(root: Path) -> bool:
@@ -51,6 +65,17 @@ def _projection_files(skill_root: Path) -> dict[str, str]:
     for path in sorted(skill_root.rglob("*")):
         if path.is_file() and not path.is_symlink():
             relative = path.relative_to(skill_root).as_posix()
+            relative_parts = Path(relative).parts
+            if any(
+                part in _IGNORED_PROJECTION_DIRECTORIES
+                for part in relative_parts[:-1]
+            ):
+                continue
+            if (
+                path.name in _IGNORED_PROJECTION_FILES
+                or path.suffix in _IGNORED_PROJECTION_SUFFIXES
+            ):
+                continue
             files[relative] = _hash_file(path)
     return files
 
@@ -156,13 +181,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             suite_data = load_suite(args.suite)
         except SuiteValidationError as error:
             report = {
-                "drift": False,
                 "error": f"invalid suite metadata: {error}",
                 "ignored_roots": [],
                 "roots": [],
+                "status": "error",
             }
             print(json.dumps(report, indent=2, sort_keys=True))
-            return 0
+            return 2
         managed_skills = [skill["id"] for skill in suite_data["skills"]]
 
     report = compare_roots(args.canonical_root, args.installed_roots, managed_skills)

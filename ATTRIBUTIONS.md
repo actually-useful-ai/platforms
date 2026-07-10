@@ -31,4 +31,8 @@ No license was found for these pinned sources during evaluation. They are resear
 
 ## Excluded source
 
-`jordangarrison/ash-kindle` was evaluated and excluded because it is unrelated to this suite's publishing workflows.
+| Source | Pinned revision | Status |
+|---|---|---|
+| [jordangarrison/ash-kindle](https://github.com/jordangarrison/ash-kindle) | `d425946fe9585f43af2eedf20721f3fdf3779026` | Excluded and unrelated |
+
+No license was found for this source during evaluation. It is pinned only to document the exclusion, remains research-only, and permits no code or prose reuse in this suite.

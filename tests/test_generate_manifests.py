@@ -107,6 +107,20 @@ class ManifestGenerationTests(unittest.TestCase):
         self.assertIn(".cursor-plugin/plugin.json", stdout.getvalue())
         self.assertEqual(manifest.read_bytes(), before)
 
+    def test_check_reports_mode_drift_without_writing(self) -> None:
+        root = self.make_root()
+        generate_manifests.generate(root)
+        manifest = root / ".cursor-plugin/plugin.json"
+        manifest.chmod(0o755)
+        stdout = StringIO()
+
+        with redirect_stdout(stdout):
+            exit_code = generate_manifests.main(["--root", str(root), "--check"])
+
+        self.assertEqual(exit_code, 1)
+        self.assertIn(".cursor-plugin/plugin.json", stdout.getvalue())
+        self.assertEqual(manifest.stat().st_mode & 0o777, 0o755)
+
     def test_invalid_suite_metadata_is_rejected_before_writes(self) -> None:
         root = self.make_root(VALID_SUITE.replace('version = "0.1.0"', 'version = "release"'))
 
@@ -115,29 +129,109 @@ class ManifestGenerationTests(unittest.TestCase):
 
         self.assertFalse((root / ".claude-plugin/plugin.json").exists())
 
-    def test_manifest_inventory_comes_from_suite_metadata(self) -> None:
+    def test_generated_component_shapes_follow_local_exemplars(self) -> None:
         root = self.make_root()
         generate_manifests.generate(root)
 
-        plugin = json.loads((root / ".claude-plugin/plugin.json").read_text(encoding="utf-8"))
-
-        self.assertEqual(
-            [skill["name"] for skill in plugin["skills"]],
-            ["platforms", "platforms-intake"],
+        claude = json.loads(
+            (root / ".claude-plugin/plugin.json").read_text(encoding="utf-8")
         )
-        self.assertEqual(plugin["agents"], [{"name": "platform-recon", "read_only": True}])
-
-    def test_marketplace_record_carries_component_inventory(self) -> None:
-        root = self.make_root()
-        generate_manifests.generate(root)
-
-        marketplace = json.loads(
+        cursor = json.loads(
+            (root / ".cursor-plugin/plugin.json").read_text(encoding="utf-8")
+        )
+        codex = json.loads(
+            (root / ".codex-plugin/plugin.json").read_text(encoding="utf-8")
+        )
+        agents_marketplace = json.loads(
             (root / ".agents/plugins/marketplace.json").read_text(encoding="utf-8")
         )
-        record = marketplace["plugins"][0]
+        lock = json.loads((root / generate_manifests.LOCK_PATH).read_text(encoding="utf-8"))
 
-        self.assertEqual(record["skills"], ["platforms", "platforms-intake"])
-        self.assertEqual(record["agents"], ["platform-recon"])
+        self.assertNotIn("skills", claude)
+        self.assertNotIn("agents", claude)
+        self.assertNotIn("client", claude)
+        self.assertEqual(cursor["skills"], "./skills/")
+        self.assertNotIn("agents", cursor)
+        self.assertNotIn("client", cursor)
+        self.assertEqual(codex["skills"], "./skills/")
+        self.assertNotIn("agents", codex)
+        self.assertNotIn("client", codex)
+        self.assertEqual(
+            agents_marketplace["plugins"][0]["source"],
+            {"source": "url", "url": "./"},
+        )
+        for marketplace_path in (
+            ".agents/plugins/marketplace.json",
+            ".claude-plugin/marketplace.json",
+            ".cursor-plugin/marketplace.json",
+        ):
+            record = json.loads(
+                (root / marketplace_path).read_text(encoding="utf-8")
+            )["plugins"][0]
+            self.assertNotIsInstance(record.get("skills"), list, marketplace_path)
+            self.assertNotIsInstance(record.get("agents"), list, marketplace_path)
+        self.assertEqual(
+            lock["inventory"],
+            {
+                "agents": ["platform-recon"],
+                "skills": ["platforms", "platforms-intake"],
+            },
+        )
+
+    def test_supported_client_subset_controls_outputs_and_lock(self) -> None:
+        root = self.make_root()
+        generate_manifests.generate(root)
+        cursor_only = VALID_SUITE.replace(
+            'supported = ["claude", "cursor", "codex", "agents"]',
+            'supported = ["cursor"]',
+        )
+        (root / "suite.toml").write_text(cursor_only, encoding="utf-8")
+
+        check_drift = generate_manifests.generate(root, check=True)
+        generate_manifests.generate(root)
+
+        self.assertIn(".claude-plugin/plugin.json", check_drift)
+        self.assertIn(".codex-plugin/plugin.json", check_drift)
+        self.assertIn(".agents/plugins/marketplace.json", check_drift)
+        self.assertTrue((root / ".cursor-plugin/plugin.json").is_file())
+        self.assertTrue((root / ".cursor-plugin/marketplace.json").is_file())
+        self.assertFalse((root / ".claude-plugin/plugin.json").exists())
+        self.assertFalse((root / ".codex-plugin/plugin.json").exists())
+        self.assertFalse((root / ".agents/plugins/marketplace.json").exists())
+        lock = json.loads((root / generate_manifests.LOCK_PATH).read_text(encoding="utf-8"))
+        self.assertEqual(
+            [entry["path"] for entry in lock["files"]],
+            [
+                ".cursor-plugin/marketplace.json",
+                ".cursor-plugin/plugin.json",
+                "suite.toml",
+            ],
+        )
+        self.assertEqual(lock["supported_clients"], ["cursor"])
+
+    def test_generation_refuses_symlinked_output_file(self) -> None:
+        root = self.make_root()
+        outside = self.make_root()
+        sentinel = outside / "sentinel.json"
+        sentinel.write_text("outside\n", encoding="utf-8")
+        target = root / ".claude-plugin/plugin.json"
+        target.parent.mkdir(parents=True)
+        target.symlink_to(sentinel)
+
+        with self.assertRaisesRegex(RuntimeError, "symlink"):
+            generate_manifests.generate(root)
+
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "outside\n")
+
+    def test_generation_refuses_symlinked_output_parent(self) -> None:
+        root = self.make_root()
+        outside = self.make_root()
+        (root / ".cursor-plugin").symlink_to(outside, target_is_directory=True)
+
+        with self.assertRaisesRegex(RuntimeError, "symlink"):
+            generate_manifests.generate(root)
+
+        self.assertFalse((outside / "plugin.json").exists())
 
 
 if __name__ == "__main__":

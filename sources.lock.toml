@@ -76,3 +76,13 @@ revision = "9194489d23ffd287f5a9fbf33dc22cbb4132b3d2"
 license = "NOASSERTION"
 use = "research-only"
 code_copy_allowed = false
+
+[[sources]]
+repository = "https://github.com/jordangarrison/ash-kindle"
+revision = "d425946fe9585f43af2eedf20721f3fdf3779026"
+license = "NOASSERTION"
+use = "excluded-unrelated"
+excluded = true
+exclusion_reason = "unrelated"
+research_only = true
+code_copy_allowed = false

@@ -16,6 +16,8 @@ Status: complete in version 0.1.0
 - Generate deterministic client and marketplace manifests.
 - Generate a timestamp-free SHA-256 integrity lock.
 - Detect installed projection drift without changing user files.
+- Validate official client component shapes against enabled local exemplars.
+- Fail closed on unsafe generated paths and unreadable canonical metadata.
 - Pin evaluated source revisions and license boundaries.
 - Establish strict test-first evidence and contributor guidance.
 
@@ -38,10 +40,13 @@ Rules:
 
 1. `suite.toml` is the sole metadata authority.
 2. Generated JSON and the lock are committed but never hand-edited.
-3. Canonical skill prose will live under `skills/` when implementation begins.
-4. Installed roots are projections, never inputs to generation.
-5. Source content may be adapted only when its license permits reuse.
-6. No-license material remains research-only.
+3. Supported-client subsets determine generated files, stale-file cleanup, and lock entries.
+4. Client component fields use official relative directory paths or auto-discovery.
+5. Generated writes remain inside the repository, reject symlinks, and replace files atomically.
+6. Canonical skill prose will live under `skills/` when implementation begins.
+7. Installed roots are projections, never inputs to generation.
+8. Source content may be adapted only when its license permits reuse.
+9. No-license and excluded material permits no reuse.
 
 ## Planned components
 

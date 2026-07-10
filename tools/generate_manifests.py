@@ -7,30 +7,45 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import stat
 import sys
+import tempfile
 import tomllib
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Sequence
 from urllib.parse import urlparse
 
 
-GENERATED_MANIFESTS = (
-    ".agents/plugins/marketplace.json",
-    ".claude-plugin/marketplace.json",
-    ".claude-plugin/plugin.json",
-    ".codex-plugin/plugin.json",
-    ".cursor-plugin/marketplace.json",
-    ".cursor-plugin/plugin.json",
+CLIENT_MANIFESTS = {
+    "agents": (".agents/plugins/marketplace.json",),
+    "claude": (
+        ".claude-plugin/marketplace.json",
+        ".claude-plugin/plugin.json",
+    ),
+    "codex": (".codex-plugin/plugin.json",),
+    "cursor": (
+        ".cursor-plugin/marketplace.json",
+        ".cursor-plugin/plugin.json",
+    ),
+}
+GENERATED_MANIFESTS = tuple(
+    sorted(path for paths in CLIENT_MANIFESTS.values() for path in paths)
 )
 LOCK_PATH = "dist/manifest.lock.json"
 SUPPORTED_CLIENTS = ("agents", "claude", "codex", "cursor")
+GENERATED_MODE = 0o644
 _COMPONENT_ID = re.compile(r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")
 _SEMVER = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 
 
 class SuiteValidationError(ValueError):
     """Raised when suite.toml does not satisfy the canonical suite model."""
+
+
+class GenerationSafetyError(RuntimeError):
+    """Raised when an output path could escape or traverse a symlink."""
 
 
 def _stable_json(value: Any) -> bytes:
@@ -135,43 +150,61 @@ def load_suite(path: Path) -> dict[str, Any]:
     }
 
 
-def _plugin_manifest(suite_data: dict[str, Any], client: str) -> dict[str, Any]:
+def _base_plugin_manifest(suite_data: dict[str, Any]) -> dict[str, Any]:
     suite = suite_data["suite"]
     return {
-        "agents": [
-            {"name": agent["id"], "read_only": agent["read_only"]}
-            for agent in suite_data["agents"]
-        ],
         "author": {"name": suite["author"]},
-        "client": client,
         "description": suite["description"],
+        "homepage": suite["repository"],
         "license": suite["license"],
         "name": suite["id"],
         "repository": suite["repository"],
-        "skills": [
-            {"name": skill["id"], "path": f"skills/{skill['id']}"}
-            for skill in suite_data["skills"]
-        ],
         "version": suite["version"],
     }
 
 
-def _marketplace_manifest(suite_data: dict[str, Any], client: str) -> dict[str, Any]:
+def _plugin_manifest(suite_data: dict[str, Any], client: str) -> dict[str, Any]:
+    manifest = _base_plugin_manifest(suite_data)
+    if client == "cursor":
+        manifest["displayName"] = suite_data["suite"]["name"]
+        manifest["skills"] = "./skills/"
+    elif client == "codex":
+        manifest["skills"] = "./skills/"
+    return manifest
+
+
+def _standard_marketplace_manifest(suite_data: dict[str, Any]) -> dict[str, Any]:
     suite = suite_data["suite"]
     return {
-        "client": client,
-        "name": f"{suite['id']}-marketplace",
+        "description": suite["description"],
+        "name": suite["id"],
         "owner": {"name": suite["author"]},
         "plugins": [
             {
-                "agents": [agent["id"] for agent in suite_data["agents"]],
+                "author": {"name": suite["author"]},
                 "description": suite["description"],
-                "license": suite["license"],
                 "name": suite["id"],
-                "repository": suite["repository"],
-                "skills": [skill["id"] for skill in suite_data["skills"]],
                 "source": "./",
                 "version": suite["version"],
+            }
+        ],
+    }
+
+
+def _agents_marketplace_manifest(suite_data: dict[str, Any]) -> dict[str, Any]:
+    suite = suite_data["suite"]
+    return {
+        "interface": {"displayName": suite["name"]},
+        "name": suite["id"],
+        "plugins": [
+            {
+                "category": "Developer Tools",
+                "name": suite["id"],
+                "policy": {
+                    "authentication": "ON_INSTALL",
+                    "installation": "AVAILABLE",
+                },
+                "source": {"source": "url", "url": "./"},
             }
         ],
     }
@@ -182,28 +215,34 @@ def build_outputs(root: Path) -> dict[str, bytes]:
 
     suite_path = root / "suite.toml"
     suite_data = load_suite(suite_path)
-    outputs = {
-        ".agents/plugins/marketplace.json": _stable_json(
-            _marketplace_manifest(suite_data, "agents")
-        ),
-        ".claude-plugin/marketplace.json": _stable_json(
-            _marketplace_manifest(suite_data, "claude")
-        ),
-        ".claude-plugin/plugin.json": _stable_json(
+    supported = set(suite_data["clients"]["supported"])
+    outputs: dict[str, bytes] = {}
+    if "agents" in supported:
+        outputs[".agents/plugins/marketplace.json"] = _stable_json(
+            _agents_marketplace_manifest(suite_data)
+        )
+    if "claude" in supported:
+        outputs[".claude-plugin/marketplace.json"] = _stable_json(
+            _standard_marketplace_manifest(suite_data)
+        )
+        outputs[".claude-plugin/plugin.json"] = _stable_json(
             _plugin_manifest(suite_data, "claude")
-        ),
-        ".codex-plugin/plugin.json": _stable_json(_plugin_manifest(suite_data, "codex")),
-        ".cursor-plugin/marketplace.json": _stable_json(
-            _marketplace_manifest(suite_data, "cursor")
-        ),
-        ".cursor-plugin/plugin.json": _stable_json(
+        )
+    if "codex" in supported:
+        outputs[".codex-plugin/plugin.json"] = _stable_json(
+            _plugin_manifest(suite_data, "codex")
+        )
+    if "cursor" in supported:
+        outputs[".cursor-plugin/marketplace.json"] = _stable_json(
+            _standard_marketplace_manifest(suite_data)
+        )
+        outputs[".cursor-plugin/plugin.json"] = _stable_json(
             _plugin_manifest(suite_data, "cursor")
-        ),
-    }
+        )
     lock_entries = [
         {
             "executable": False,
-            "mode": "0644",
+            "mode": f"{GENERATED_MODE:04o}",
             "path": "suite.toml",
             "sha256": hashlib.sha256(suite_path.read_bytes()).hexdigest(),
         }
@@ -211,7 +250,7 @@ def build_outputs(root: Path) -> dict[str, bytes]:
     lock_entries.extend(
         {
             "executable": False,
-            "mode": "0644",
+            "mode": f"{GENERATED_MODE:04o}",
             "path": path,
             "sha256": hashlib.sha256(payload).hexdigest(),
         }
@@ -220,6 +259,11 @@ def build_outputs(root: Path) -> dict[str, bytes]:
     outputs[LOCK_PATH] = _stable_json(
         {
             "files": sorted(lock_entries, key=lambda entry: entry["path"]),
+            "inventory": {
+                "agents": [agent["id"] for agent in suite_data["agents"]],
+                "skills": [skill["id"] for skill in suite_data["skills"]],
+            },
+            "supported_clients": suite_data["clients"]["supported"],
             "suite_version": suite_data["suite"]["version"],
         }
     )
@@ -227,34 +271,123 @@ def build_outputs(root: Path) -> dict[str, bytes]:
 
 
 def find_drift(root: Path, outputs: dict[str, bytes]) -> list[str]:
-    """Return normalized output paths whose committed bytes differ or are missing."""
+    """Return output paths whose bytes, type, symlink status, or mode drift."""
 
     drift: list[str] = []
     for relative_path, expected in sorted(outputs.items()):
         target = root / relative_path
         try:
+            metadata = target.lstat()
+            if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+                drift.append(relative_path)
+                continue
             actual = target.read_bytes()
         except OSError:
             drift.append(relative_path)
             continue
-        if actual != expected:
+        if actual != expected or stat.S_IMODE(metadata.st_mode) != GENERATED_MODE:
             drift.append(relative_path)
+    for relative_path in sorted(set(GENERATED_MANIFESTS) - set(outputs)):
+        try:
+            (root / relative_path).lstat()
+        except OSError:
+            continue
+        drift.append(relative_path)
     return drift
+
+
+def _safe_target(root: Path, relative_path: str) -> Path:
+    path = PurePosixPath(relative_path)
+    if path.is_absolute() or ".." in path.parts or not path.parts:
+        raise GenerationSafetyError(f"generated path escapes repository: {relative_path}")
+    target = root.joinpath(*path.parts)
+    try:
+        target.relative_to(root)
+    except ValueError as error:
+        raise GenerationSafetyError(
+            f"generated path escapes repository: {relative_path}"
+        ) from error
+
+    current = root
+    for part in path.parts[:-1]:
+        current /= part
+        if current.is_symlink():
+            raise GenerationSafetyError(
+                f"generated parent is a symlink: {current.relative_to(root).as_posix()}"
+            )
+        if current.exists() and not current.is_dir():
+            raise GenerationSafetyError(
+                f"generated parent is not a directory: "
+                f"{current.relative_to(root).as_posix()}"
+            )
+    if target.is_symlink():
+        raise GenerationSafetyError(f"generated output is a symlink: {relative_path}")
+    if target.exists() and not target.is_file():
+        raise GenerationSafetyError(
+            f"generated output is not a regular file: {relative_path}"
+        )
+    return target
+
+
+def _create_safe_parents(root: Path, target: Path) -> None:
+    current = root
+    for part in target.relative_to(root).parts[:-1]:
+        current /= part
+        if current.is_symlink():
+            raise GenerationSafetyError(
+                f"generated parent is a symlink: {current.relative_to(root).as_posix()}"
+            )
+        current.mkdir(exist_ok=True)
+        if current.is_symlink() or not current.is_dir():
+            raise GenerationSafetyError(
+                f"generated parent is unsafe: {current.relative_to(root).as_posix()}"
+            )
+
+
+def _atomic_write(root: Path, relative_path: str, payload: bytes) -> None:
+    target = _safe_target(root, relative_path)
+    _create_safe_parents(root, target)
+    target = _safe_target(root, relative_path)
+    temporary_path: Path | None = None
+    try:
+        descriptor, temporary_name = tempfile.mkstemp(
+            dir=target.parent,
+            prefix=f".{target.name}.",
+            suffix=".tmp",
+        )
+        temporary_path = Path(temporary_name)
+        with os.fdopen(descriptor, "wb") as temporary_file:
+            temporary_file.write(payload)
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
+        os.chmod(temporary_path, GENERATED_MODE, follow_symlinks=False)
+        _safe_target(root, relative_path)
+        os.replace(temporary_path, target)
+        temporary_path = None
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
 
 
 def generate(root: Path, *, check: bool = False) -> list[str]:
     """Generate files, or return drift without writes when check is true."""
 
-    root = root.resolve()
+    root = root.expanduser().resolve(strict=True)
+    if not root.is_dir():
+        raise GenerationSafetyError(f"suite root is not a directory: {root}")
     outputs = build_outputs(root)
     drift = find_drift(root, outputs)
     if check:
         return drift
+    stale_outputs = sorted(set(GENERATED_MANIFESTS) - set(outputs))
+    for relative_path in sorted((*outputs, *stale_outputs)):
+        _safe_target(root, relative_path)
+    for relative_path in stale_outputs:
+        stale_target = _safe_target(root, relative_path)
+        if stale_target.exists():
+            stale_target.unlink()
     for relative_path, payload in sorted(outputs.items()):
-        target = root / relative_path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(payload)
-        target.chmod(0o644)
+        _atomic_write(root, relative_path, payload)
     return find_drift(root, outputs)
 
 
@@ -282,8 +415,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
         drift = generate(args.root, check=args.check)
-    except SuiteValidationError as error:
-        print(f"invalid suite metadata: {error}", file=sys.stderr)
+    except (GenerationSafetyError, SuiteValidationError) as error:
+        print(f"cannot generate manifests: {error}", file=sys.stderr)
         return 2
     if args.check and drift:
         print("generated manifest drift:")
@@ -293,7 +426,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.check:
         print("generated manifests are current")
     else:
-        print(f"generated {len(GENERATED_MANIFESTS) + 1} files")
+        print(f"generated {len(build_outputs(args.root))} files")
     return 0
 
 

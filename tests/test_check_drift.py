@@ -89,6 +89,44 @@ class DriftDetectionTests(unittest.TestCase):
         )
         self.assertEqual((installed / "platforms/SKILL.md").read_bytes(), before)
 
+    def test_invalid_suite_metadata_fails_closed_with_error_result(self) -> None:
+        canonical = self.make_directory("canonical")
+        invalid_suite = canonical / "suite.toml"
+        invalid_suite.write_text("schema_version = 99\n", encoding="utf-8")
+        stdout = StringIO()
+
+        with redirect_stdout(stdout):
+            exit_code = check_drift.main(
+                [
+                    "--canonical-root",
+                    str(canonical),
+                    "--suite",
+                    str(invalid_suite),
+                ]
+            )
+
+        result = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(result["status"], "error")
+        self.assertNotIn("drift", result)
+
+    def test_generated_cache_files_inside_skills_are_ignored(self) -> None:
+        canonical = self.make_directory("canonical")
+        installed = self.make_directory("installed")
+        self.write_skill(canonical, "platforms", "canonical\n")
+        self.write_skill(installed, "platforms", "canonical\n")
+        skill = installed / "platforms"
+        for cache_name in ("__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"):
+            cache = skill / cache_name
+            cache.mkdir()
+            (cache / "state").write_text("generated\n", encoding="utf-8")
+        (skill / "compiled.pyc").write_bytes(b"generated")
+
+        report = check_drift.compare_roots(canonical, [installed], ["platforms"])
+
+        self.assertFalse(report["drift"])
+        self.assertEqual(report["roots"][0]["changed"], [])
+
     def test_agent_caches_and_cursor_managed_root_are_ignored(self) -> None:
         canonical = self.make_directory("canonical")
         cache_root = self.make_directory("cache-parent") / "cache" / "skills"

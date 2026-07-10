@@ -50,13 +50,17 @@ The generator writes:
 
 Do not edit these files by hand. Edit `suite.toml`, regenerate, review the diff, and commit the canonical metadata and generated outputs together. The generator never creates or changes `SKILL.md` prose.
 
+Only clients listed in `clients.supported` receive manifests and lock entries. Removing client support removes its known generated manifests on the next generation run. Claude uses component auto-discovery, while Cursor and Codex use official relative directory-path fields. Planned component names stay in `suite.toml` and the lock inventory rather than client-reserved fields.
+
 Check for generated drift without writing:
 
 ```sh
 python3 tools/generate_manifests.py --check
 ```
 
-The lock records normalized POSIX paths, SHA-256 hashes, suite version, and file modes. It contains no timestamps, so identical inputs produce identical bytes.
+The check detects byte, file-type, symlink, stale-client, and permission-mode drift. Generation refuses symlinked output files or parents and uses atomic replacement inside the repository.
+
+The lock records normalized POSIX paths, SHA-256 hashes, suite version, supported clients, planned inventory, and file modes. It contains no timestamps, so identical inputs produce identical bytes.
 
 ## Installed-skill drift
 
@@ -66,7 +70,7 @@ Compare canonical skills with any optional installed roots:
 python3 tools/check_drift.py ~/.claude/skills ~/.codex/skills
 ```
 
-The command emits sorted JSON and never edits installed files. Missing, changed, or extra managed projections produce exit code 1. Unmanaged files do not affect the exit code. Agent-managed cache paths and `~/.cursor/skills-cursor` are intentionally ignored.
+The command emits sorted JSON and never edits installed files. Missing, changed, or extra managed projections produce exit code 1. Invalid or unreadable canonical metadata fails closed with exit code 2 and a distinct error result. Unmanaged files do not affect the exit code. Agent-managed cache paths, generated cache content inside skills, and `~/.cursor/skills-cursor` are intentionally ignored.
 
 Calling the command with no installed roots returns a clean report:
 

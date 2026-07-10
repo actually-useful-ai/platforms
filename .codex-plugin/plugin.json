@@ -1,111 +1,12 @@
 {
-  "agents": [
-    {
-      "name": "platform-recon",
-      "read_only": true
-    },
-    {
-      "name": "package-auditor",
-      "read_only": true
-    },
-    {
-      "name": "tv-accessibility-reviewer",
-      "read_only": true
-    },
-    {
-      "name": "docs-curator",
-      "read_only": true
-    }
-  ],
   "author": {
     "name": "Luke Steuber"
   },
-  "client": "codex",
   "description": "Portable skills and read-only review agents for platform delivery and publishing.",
+  "homepage": "https://github.com/actually-useful-ai/platforms",
   "license": "MIT",
   "name": "platforms",
   "repository": "https://github.com/actually-useful-ai/platforms",
-  "skills": [
-    {
-      "name": "platforms",
-      "path": "skills/platforms"
-    },
-    {
-      "name": "platforms-intake",
-      "path": "skills/platforms-intake"
-    },
-    {
-      "name": "platforms-release-plan",
-      "path": "skills/platforms-release-plan"
-    },
-    {
-      "name": "platforms-store-assets",
-      "path": "skills/platforms-store-assets"
-    },
-    {
-      "name": "platforms-tv-accessibility",
-      "path": "skills/platforms-tv-accessibility"
-    },
-    {
-      "name": "platforms-pebble-watchface",
-      "path": "skills/platforms-pebble-watchface"
-    },
-    {
-      "name": "platforms-pebble-watchapp",
-      "path": "skills/platforms-pebble-watchapp"
-    },
-    {
-      "name": "platforms-android",
-      "path": "skills/platforms-android"
-    },
-    {
-      "name": "platforms-fire-tablet",
-      "path": "skills/platforms-fire-tablet"
-    },
-    {
-      "name": "platforms-fire-tv",
-      "path": "skills/platforms-fire-tv"
-    },
-    {
-      "name": "platforms-android-tv",
-      "path": "skills/platforms-android-tv"
-    },
-    {
-      "name": "platforms-vega",
-      "path": "skills/platforms-vega"
-    },
-    {
-      "name": "platforms-webos",
-      "path": "skills/platforms-webos"
-    },
-    {
-      "name": "platforms-tizen",
-      "path": "skills/platforms-tizen"
-    },
-    {
-      "name": "platforms-roku",
-      "path": "skills/platforms-roku"
-    },
-    {
-      "name": "platforms-web-kiosk",
-      "path": "skills/platforms-web-kiosk"
-    },
-    {
-      "name": "platforms-kdp-book",
-      "path": "skills/platforms-kdp-book"
-    },
-    {
-      "name": "platforms-kdp-cover",
-      "path": "skills/platforms-kdp-cover"
-    },
-    {
-      "name": "platforms-kdp-metadata",
-      "path": "skills/platforms-kdp-metadata"
-    },
-    {
-      "name": "platforms-epub-accessibility",
-      "path": "skills/platforms-epub-accessibility"
-    }
-  ],
+  "skills": "./skills/",
   "version": "0.1.0"
 }
