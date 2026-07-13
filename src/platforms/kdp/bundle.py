@@ -109,6 +109,15 @@ def build_upload_bundle(project: Path) -> ArtifactBundle:
 
 def package_upload_bundle(project: Path, bundle: ArtifactBundle) -> ArtifactBundle:
     """Promote a validated KDP bundle to store-staged without submitting."""
+    if bundle.track_state not in {TrackState.VALIDATED, TrackState.DEVICE_TESTED}:
+        return ArtifactBundle(
+            platform_id="kdp",
+            track_state=bundle.track_state,
+            artifacts=bundle.artifacts,
+            checksums=dict(bundle.checksums),
+            notes=bundle.notes
+            + ("store staging blocked: validated KDP evidence is required",),
+        )
     notes = bundle.notes + (
         "store-staged: upload checklist ready for human KDP console use",
         "submitted state must be set manually after human publish",

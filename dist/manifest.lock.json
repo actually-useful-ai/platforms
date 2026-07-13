@@ -10,37 +10,37 @@
       "executable": false,
       "mode": "0644",
       "path": ".claude-plugin/marketplace.json",
-      "sha256": "3842dc6ea61ca558f0a9ad50cc666d3c9b5533bc6dd8135cefe696edf8a43c40"
+      "sha256": "4f567eb2b29ee1ed1ccd34caba41d54fbec7d39f39bee2e3b7436f43fa9a9ae2"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".claude-plugin/plugin.json",
-      "sha256": "10e0aaf5365e7f8f038ba293eadd939e1578b80a93c96f187098d433d2ab7e0c"
+      "sha256": "0ff771bedb3cb47e308ff6af4c47fcdce6277ac16c232ed2437a9036ea0dc3b3"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".codex-plugin/plugin.json",
-      "sha256": "dee7c0631c44180026d549c099736f56b9348fa6b37690e53eca1d87a6f1ab67"
+      "sha256": "76c49b70dd09c3fc4477a1ae9dde7f89b097a8f7b3a1aa45dd271db0bda84dee"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".cursor-plugin/marketplace.json",
-      "sha256": "3842dc6ea61ca558f0a9ad50cc666d3c9b5533bc6dd8135cefe696edf8a43c40"
+      "sha256": "4f567eb2b29ee1ed1ccd34caba41d54fbec7d39f39bee2e3b7436f43fa9a9ae2"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".cursor-plugin/plugin.json",
-      "sha256": "5b0ba1b8059ff9b220c65ee78a757c52a6891e9959686d30fbdc3cc28015ffe2"
+      "sha256": "39e5141a9c8b4b22e5b97c57309898ff67cf190a9338ed51d948a79269222fef"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": "suite.toml",
-      "sha256": "8b5dd928391f9a7eeb036d889a1fdc74b57d198c26ccef61770eac8ab9a7d78b"
+      "sha256": "c570ea19dbeead14de31e0a3c06752780d7f0719a871caf02201ff6f733d22f3"
     }
   ],
   "inventory": {
@@ -50,30 +50,81 @@
       "tv-accessibility-reviewer",
       "docs-curator"
     ],
+    "aliases": [
+      {
+        "id": "platforms-android",
+        "target": "platforms-mobile"
+      },
+      {
+        "id": "platforms-android-tv",
+        "target": "platforms-tv"
+      },
+      {
+        "id": "platforms-epub-accessibility",
+        "target": "platforms-kdp"
+      },
+      {
+        "id": "platforms-fire-tablet",
+        "target": "platforms-mobile"
+      },
+      {
+        "id": "platforms-fire-tv",
+        "target": "platforms-tv"
+      },
+      {
+        "id": "platforms-kdp-book",
+        "target": "platforms-kdp"
+      },
+      {
+        "id": "platforms-kdp-cover",
+        "target": "platforms-kdp"
+      },
+      {
+        "id": "platforms-kdp-metadata",
+        "target": "platforms-kdp"
+      },
+      {
+        "id": "platforms-pebble-watchapp",
+        "target": "platforms-pebble"
+      },
+      {
+        "id": "platforms-pebble-watchface",
+        "target": "platforms-pebble"
+      },
+      {
+        "id": "platforms-roku",
+        "target": "platforms-tv"
+      },
+      {
+        "id": "platforms-tizen",
+        "target": "platforms-tv"
+      },
+      {
+        "id": "platforms-tv-accessibility",
+        "target": "platforms-tv"
+      },
+      {
+        "id": "platforms-vega",
+        "target": "platforms-tv"
+      },
+      {
+        "id": "platforms-webos",
+        "target": "platforms-tv"
+      }
+    ],
     "skills": [
       "platforms",
       "platforms-intake",
       "platforms-release-plan",
       "platforms-store-assets",
-      "platforms-tv-accessibility",
-      "platforms-pebble-watchface",
-      "platforms-pebble-watchapp",
-      "platforms-android",
-      "platforms-fire-tablet",
-      "platforms-fire-tv",
-      "platforms-android-tv",
-      "platforms-vega",
-      "platforms-webos",
-      "platforms-tizen",
-      "platforms-roku",
-      "platforms-web-kiosk",
-      "platforms-kdp-book",
-      "platforms-kdp-cover",
-      "platforms-kdp-metadata",
-      "platforms-epub-accessibility"
+      "platforms-tv",
+      "platforms-mobile",
+      "platforms-kdp",
+      "platforms-pebble",
+      "platforms-web-kiosk"
     ]
   },
-  "suite_version": "0.2.0",
+  "suite_version": "0.3.0",
   "supported_clients": [
     "agents",
     "claude",

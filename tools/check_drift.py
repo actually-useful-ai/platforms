@@ -38,6 +38,7 @@ _IGNORED_PROJECTION_SUFFIXES = {
     ".pyc",
     ".pyo",
 }
+_STATE_FILE = ".platforms-projections.json"
 
 
 def is_ignored_root(root: Path) -> bool:
@@ -80,14 +81,34 @@ def _projection_files(skill_root: Path) -> dict[str, str]:
     return files
 
 
+def _recorded_managed_names(root: Path) -> set[str]:
+    """Read valid managed names from installer state without modifying it."""
+
+    state_path = root / _STATE_FILE
+    if not state_path.is_file() or state_path.is_symlink():
+        return set()
+    try:
+        value = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return set()
+    managed = value.get("managed", [])
+    if not isinstance(managed, list):
+        return set()
+    return {name for name in managed if isinstance(name, str)}
+
+
 def compare_roots(
     canonical_root: Path,
     installed_roots: Sequence[Path],
     managed_skills: Sequence[str],
+    *,
+    aliases: dict[str, str] | None = None,
+    stale_managed_names: Sequence[str] = (),
 ) -> dict[str, Any]:
-    """Compare managed projections and return a stable, JSON-compatible report."""
+    """Compare canonical content, aliases, and stale managed names separately."""
 
     canonical_root = canonical_root.expanduser().resolve(strict=False)
+    aliases = aliases or {}
     canonical = {
         name: _projection_files(canonical_root / name)
         for name in sorted(set(managed_skills))
@@ -116,17 +137,45 @@ def compare_roots(
             for relative in sorted(set(canonical_files) | set(installed_files)):
                 if canonical_files.get(relative) != installed_files.get(relative):
                     changed.append(f"{name}/{relative}")
+        missing_aliases: list[str] = []
+        changed_aliases: list[str] = []
+        for alias, target in sorted(aliases.items()):
+            alias_path = resolved / alias
+            target_path = resolved / target
+            if not alias_path.exists() and not alias_path.is_symlink():
+                missing_aliases.append(alias)
+                continue
+            if (
+                not alias_path.is_symlink()
+                or not target_path.exists()
+                or alias_path.resolve(strict=False) != target_path.resolve(strict=False)
+            ):
+                changed_aliases.append(alias)
+        recorded_stale = _recorded_managed_names(resolved) - set(canonical) - set(aliases)
+        stale = sorted(
+            name
+            for name in set(stale_managed_names) | recorded_stale
+            if (resolved / name).exists() or (resolved / name).is_symlink()
+        )
         root_reports.append(
             {
                 "changed": changed,
+                "changed_aliases": changed_aliases,
                 "extra": extra,
                 "missing": missing,
+                "missing_aliases": missing_aliases,
                 "root": str(resolved),
+                "stale": stale,
             }
         )
 
     drift = any(
-        report["missing"] or report["changed"] or report["extra"]
+        report["missing"]
+        or report["changed"]
+        or report["extra"]
+        or report["missing_aliases"]
+        or report["changed_aliases"]
+        or report["stale"]
         for report in root_reports
     )
     return {
@@ -189,8 +238,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps(report, indent=2, sort_keys=True))
             return 2
         managed_skills = [skill["id"] for skill in suite_data["skills"]]
+    aliases = (
+        {}
+        if args.managed_skill
+        else {item["id"]: item["target"] for item in suite_data["aliases"]}
+    )
 
-    report = compare_roots(args.canonical_root, args.installed_roots, managed_skills)
+    report = compare_roots(
+        args.canonical_root,
+        args.installed_roots,
+        managed_skills,
+        aliases=aliases,
+    )
     print(json.dumps(report, indent=2, sort_keys=True))
     return 1 if report["drift"] else 0
 

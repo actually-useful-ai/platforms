@@ -2,6 +2,46 @@
 
 All notable changes to the Platforms and Publishing Suite are documented here.
 
+## [0.3.0] - 2026-07-12
+
+### Changed
+
+- Consolidated the canonical skill inventory from 20 directories to nine skills:
+  routing, intake, release planning, store assets, TV, mobile, KDP, Pebble, and
+  web kiosk.
+- Preserved all 15 superseded names as validated direct aliases in `suite.toml`
+  and the generated deterministic lock.
+- Merged target-specific adapter, accessibility, artifact, toolchain, and
+  human-only submission requirements into the TV, mobile, KDP, and Pebble skills.
+
+### Added
+
+- Safe projection installer with dry-run support, deterministic managed state,
+  idempotent updates, stale-managed cleanup, and symlink refusal.
+- Client-specific projection layouts: Claude copies plus relative aliases,
+  Codex direct absolute links, and canonical copies plus relative aliases for
+  Cursor and Agents.
+- Separate drift fields for missing/changed aliases and stale managed names.
+
+### Fixed
+
+- Added aliases to the published suite schema and standards-based schema tests.
+- Replaced maximal skill permissions with parsed, least-privilege frontmatter.
+- Defined official vendor documentation, source URL, retrieval date, and
+  fail-closed handling as the store-specification contract.
+- Prevented placeholders, missing artifacts, failed validation, and unvalidated
+  KDP bundles from advancing release states.
+- Restored web-kiosk accessibility/human publication gates, Vega architecture
+  selection, and webOS icon/version checks.
+- Rejected ancestor symlinks, hostile managed names, and overlapping projection
+  roots; staged replacements now restore originals on failure.
+- Allowed initial adoption to migrate only exact Codex links from a legacy alias
+  to the matching Claude legacy alias, while rejecting missing or mismatched targets.
+- Allowed non-Codex clients to adopt exact same-name links to real directories
+  under another configured supported-client root.
+- Staged complete generated-manifest sets and added rollback on injected commit
+  failure.
+
 ## [0.2.0] - 2026-07-10
 
 ### Added
@@ -42,5 +82,6 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 - Excluded nested generated caches from managed-skill comparisons.
 - Pinned the excluded `jordangarrison/ash-kindle` revision with an explicit no-reuse boundary.
 
+[0.3.0]: https://github.com/actually-useful-ai/platforms/releases/tag/v0.3.0
 [0.2.0]: https://github.com/actually-useful-ai/platforms/releases/tag/v0.2.0
 [0.1.0]: https://github.com/actually-useful-ai/platforms/releases/tag/v0.1.0

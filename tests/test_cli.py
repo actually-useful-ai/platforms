@@ -24,7 +24,12 @@ class CliCommandTests(unittest.TestCase):
             encoding="utf-8",
         )
         (root / "www").mkdir()
-        (root / "www" / "index.html").write_text("<html></html>\n", encoding="utf-8")
+        (root / "www" / "index.html").write_text(
+            "<!doctype html><html lang=\"en\"><head><title>Fixture</title></head>"
+            "<body><a href=\"#main\">Skip</a><main id=\"main\" tabindex=\"-1\">"
+            "<h1>Fixture</h1></main></body></html>\n",
+            encoding="utf-8",
+        )
         return root
 
     def run_cli(self, *args: str) -> tuple[int, str, str]:
@@ -56,6 +61,24 @@ class CliCommandTests(unittest.TestCase):
             self.assertEqual(code, 0, f"{command}: {err}\n{out}")
             payload = json.loads(out)
             self.assertEqual(payload["platform_id"], "web-kiosk")
+            if command == "build":
+                self.assertEqual(payload["track_state"], "built")
+                self.assertFalse(
+                    any(path.endswith("BUILD_STUB.txt") for path in payload["artifacts"])
+                )
+            if command == "validate":
+                self.assertEqual(payload["track_state"], "validated")
+            if command == "package":
+                self.assertEqual(payload["track_state"], "store-staged")
+            if command == "build":
+                self.assertEqual(payload["track_state"], "built")
+                self.assertFalse(
+                    any(path.endswith("BUILD_STUB.txt") for path in payload["artifacts"])
+                )
+            if command == "validate":
+                self.assertEqual(payload["track_state"], "validated")
+            if command == "package":
+                self.assertEqual(payload["track_state"], "store-staged")
 
     def test_rejects_path_traversal_project(self) -> None:
         code, _out, err = self.run_cli("detect", "--project", "/tmp/../etc", "--json")

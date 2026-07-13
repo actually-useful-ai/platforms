@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import stat
 import sys
 import tempfile
@@ -90,6 +91,45 @@ def _component_ids(
     return normalized
 
 
+def _aliases(
+    raw_aliases: Any,
+    canonical_ids: set[str],
+) -> list[dict[str, str]]:
+    """Validate aliases as direct, unique links to canonical skill ids."""
+
+    if raw_aliases is None:
+        return []
+    if not isinstance(raw_aliases, list):
+        raise SuiteValidationError("aliases must be an array of tables")
+
+    normalized: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for index, alias in enumerate(raw_aliases):
+        if not isinstance(alias, dict):
+            raise SuiteValidationError(f"aliases[{index}] must be a table")
+        alias_id = alias.get("id")
+        target = alias.get("target")
+        if not isinstance(alias_id, str) or not _COMPONENT_ID.fullmatch(alias_id):
+            raise SuiteValidationError(
+                f"aliases[{index}].id must be a lowercase kebab-case identifier"
+            )
+        if alias_id in seen:
+            raise SuiteValidationError(f"duplicate alias id: {alias_id}")
+        if alias_id in canonical_ids:
+            raise SuiteValidationError(f"alias collides with canonical skill: {alias_id}")
+        if not isinstance(target, str) or not _COMPONENT_ID.fullmatch(target):
+            raise SuiteValidationError(
+                f"aliases[{index}].target must be a lowercase kebab-case identifier"
+            )
+        if target not in canonical_ids:
+            raise SuiteValidationError(
+                f"alias {alias_id} target must be canonical: {target}"
+            )
+        seen.add(alias_id)
+        normalized.append({"id": alias_id, "target": target})
+    return sorted(normalized, key=lambda item: item["id"])
+
+
 def load_suite(path: Path) -> dict[str, Any]:
     """Load and validate canonical suite metadata without changing the filesystem."""
 
@@ -133,6 +173,8 @@ def load_suite(path: Path) -> dict[str, Any]:
     if unknown_clients:
         raise SuiteValidationError(f"unsupported clients: {', '.join(unknown_clients)}")
 
+    skills = _component_ids(raw.get("skills"), "skills")
+    aliases = _aliases(raw.get("aliases"), {skill["id"] for skill in skills})
     return {
         "schema_version": 1,
         "suite": {
@@ -145,7 +187,8 @@ def load_suite(path: Path) -> dict[str, Any]:
             "license": license_name,
         },
         "clients": {"supported": sorted(supported)},
-        "skills": _component_ids(raw.get("skills"), "skills"),
+        "skills": skills,
+        "aliases": aliases,
         "agents": _component_ids(raw.get("agents"), "agents", require_read_only=True),
     }
 
@@ -261,6 +304,7 @@ def build_outputs(root: Path) -> dict[str, bytes]:
             "files": sorted(lock_entries, key=lambda entry: entry["path"]),
             "inventory": {
                 "agents": [agent["id"] for agent in suite_data["agents"]],
+                "aliases": suite_data["aliases"],
                 "skills": [skill["id"] for skill in suite_data["skills"]],
             },
             "supported_clients": suite_data["clients"]["supported"],
@@ -369,6 +413,62 @@ def _atomic_write(root: Path, relative_path: str, payload: bytes) -> None:
             temporary_path.unlink(missing_ok=True)
 
 
+def _transactional_write(
+    root: Path,
+    outputs: dict[str, bytes],
+    stale_outputs: Sequence[str],
+) -> None:
+    """Stage the complete set and roll back file replacements on commit failure.
+
+    File contents are transactionally restored within one filesystem. Directory
+    creation and durability across power loss remain filesystem-level limits.
+    """
+
+    stage_root = Path(tempfile.mkdtemp(prefix=".manifest-stage-", dir=root))
+    staged_root = stage_root / "new"
+    backup_root = stage_root / "backup"
+    operations = sorted(set(outputs) | set(stale_outputs))
+    processed: list[dict[str, Any]] = []
+    try:
+        for relative_path, payload in sorted(outputs.items()):
+            staged = staged_root / relative_path
+            staged.parent.mkdir(parents=True, exist_ok=True)
+            staged.write_bytes(payload)
+            staged.chmod(GENERATED_MODE)
+
+        for relative_path in operations:
+            target = _safe_target(root, relative_path)
+            _create_safe_parents(root, target)
+            backup = backup_root / relative_path
+            record = {
+                "backed_up": False,
+                "installed": False,
+                "path": relative_path,
+            }
+            processed.append(record)
+            if target.exists():
+                backup.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(target, backup)
+                record["backed_up"] = True
+            if relative_path in outputs:
+                staged = staged_root / relative_path
+                os.replace(staged, target)
+                record["installed"] = True
+    except Exception:
+        for record in reversed(processed):
+            relative_path = str(record["path"])
+            target = root / relative_path
+            backup = backup_root / relative_path
+            if record["installed"] and target.exists() and not target.is_symlink():
+                target.unlink()
+            if record["backed_up"] and backup.exists():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                os.replace(backup, target)
+        raise
+    finally:
+        shutil.rmtree(stage_root, ignore_errors=True)
+
+
 def generate(root: Path, *, check: bool = False) -> list[str]:
     """Generate files, or return drift without writes when check is true."""
 
@@ -382,12 +482,7 @@ def generate(root: Path, *, check: bool = False) -> list[str]:
     stale_outputs = sorted(set(GENERATED_MANIFESTS) - set(outputs))
     for relative_path in sorted((*outputs, *stale_outputs)):
         _safe_target(root, relative_path)
-    for relative_path in stale_outputs:
-        stale_target = _safe_target(root, relative_path)
-        if stale_target.exists():
-            stale_target.unlink()
-    for relative_path, payload in sorted(outputs.items()):
-        _atomic_write(root, relative_path, payload)
+    _transactional_write(root, outputs, stale_outputs)
     return find_drift(root, outputs)
 
 

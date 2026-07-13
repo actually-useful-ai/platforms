@@ -1,6 +1,7 @@
 ---
 name: platforms-intake
-description: Platform intake
+description: Use when collecting project facts, target platforms, accessibility needs, and toolchain risks before platform packaging begins.
+allowed-tools: [Read, Write, Glob, Grep, Bash, AskUserQuestion]
 ---
 
 # Platforms Intake

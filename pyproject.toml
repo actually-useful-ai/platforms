@@ -4,13 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "platforms"
-version = "0.2.0"
+version = "0.3.0"
 description = "Portable platform delivery and publishing toolkit"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Luke Steuber", email = "luke@lukesteuber.com" }]
 dependencies = []
+
+[project.optional-dependencies]
+test = ["jsonschema>=4", "PyYAML>=6"]
 
 [project.scripts]
 platforms = "platforms.cli:main"

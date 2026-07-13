@@ -14,7 +14,7 @@ from platforms.adapters.registry import get_adapter
 from platforms.kdp.book import load_book_yml
 from platforms.kdp.bundle import build_upload_bundle
 from platforms.kdp.print_pdf import spine_width_inches
-from platforms.models import TrackState
+from platforms.models import ArtifactBundle, TrackState
 
 
 SAMPLE_BOOK = """\
@@ -102,3 +102,16 @@ class KdpPipelineTests(unittest.TestCase):
         packaged = adapter.package(root, validated)
         self.assertEqual(packaged.track_state, TrackState.STORE_STAGED)
         self.assertTrue(any("manual" in note.lower() or "human" in note.lower() for note in packaged.notes))
+
+    def test_unvalidated_kdp_bundle_cannot_be_store_staged(self) -> None:
+        root = self.make_book_project()
+        adapter = get_adapter("kdp")
+        unvalidated = ArtifactBundle(
+            platform_id="kdp",
+            track_state=TrackState.BUILT,
+            artifacts=(),
+        )
+
+        packaged = adapter.package(root, unvalidated)
+
+        self.assertEqual(packaged.track_state, TrackState.BUILT)

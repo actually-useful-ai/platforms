@@ -1,6 +1,6 @@
 # Platforms and Publishing Suite
 
-`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.2.0 adds the shared CLI, platform adapters, KDP upload-bundle pipeline, and canonical skill/agent prose.
+`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.3.0 consolidates the suite into nine canonical skills while preserving 15 legacy names as explicit aliases.
 
 ## What it does
 
@@ -24,10 +24,10 @@ cd platforms
 PYTHONPATH=src:tools:. python3 -m unittest discover -s tests -v
 ```
 
-Optional editable install:
+Optional editable install with test validators:
 
 ```sh
-pip install -e .
+pip install -e '.[test]'
 ```
 
 ## CLI
@@ -43,7 +43,11 @@ PYTHONPATH=src:tools:. python3 -m platforms report --project examples/kdp-sample
 PYTHONPATH=src:tools:. python3 -m platforms drift
 ```
 
-Commands refuse project paths containing `..` segments. Adapters run allowlisted argv arrays with `shell=False`.
+Commands refuse project paths containing `..` segments. Adapters run allowlisted
+argv arrays with `shell=False`. Generic adapters without a concrete builder
+remain `scaffolded`; placeholders never count as build evidence. Validation
+requires non-empty artifacts and checksum agreement, and packaging advances to
+`store-staged` only from validated evidence.
 
 ## KDP pipeline
 
@@ -57,13 +61,31 @@ Output lands in `dist/<slug>/<version>/` with EPUB, print PDF or pending marker,
 
 ## Canonical metadata
 
-`suite.toml` is the sole authority for identity, version, supported clients, 20 skills, and four read-only agents. Run:
+`suite.toml` is the sole authority for identity, version, supported clients, nine canonical skills, 15 aliases, and four read-only agents. Run:
 
 ```sh
 python3 tools/generate_manifests.py
 python3 tools/generate_manifests.py --check
 python3 tools/check_drift.py
+python3 tools/install_projections.py --dry-run
+python3 -m unittest tests.test_suite_schema -v
 ```
+
+The installer copies canonical skills into Claude and creates valid sibling-relative
+legacy aliases. Codex receives direct absolute links to those Claude projections.
+Cursor and Agents receive canonical copies plus sibling-relative aliases.
+Installation is state-tracked, idempotent, stale-managed cleanup-aware, rejects
+ancestor symlinks, hostile state names, and overlapping roots, and preserves an
+existing entry if its staged replacement fails.
+Initial adoption recognizes only the exact legacy Codex alias link to the
+same-named Claude alias, plus exact non-Codex same-name links to real directories
+under another configured supported-client root.
+See [Client installation](docs/install.md) for temporary-root review commands.
+
+Store dimensions, limits, slot counts, formats, and safe zones are never assumed
+from adapter prose. Asset work records the current official vendor source URL,
+retrieval date, store, and applicable platform/version, and fails closed when a
+requirement cannot be confirmed.
 
 ## Ambient Time fixture
 

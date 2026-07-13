@@ -122,7 +122,7 @@ def _cmd_build(args: argparse.Namespace) -> int:
     plan = adapter.plan(project, detection)
     bundle = adapter.build(project, plan)
     _emit(bundle.to_dict(), as_json=args.json, text=json.dumps(bundle.to_dict(), indent=2))
-    return 0
+    return 0 if bundle.track_state.value in {"built", "validated"} else 1
 
 
 def _cmd_validate(args: argparse.Namespace) -> int:
@@ -141,7 +141,7 @@ def _cmd_package(args: argparse.Namespace) -> int:
     validated = adapter.validate(project, built)
     packaged = adapter.package(project, validated)
     _emit(packaged.to_dict(), as_json=args.json, text=json.dumps(packaged.to_dict(), indent=2))
-    return 0
+    return 0 if packaged.track_state.value == "store-staged" else 1
 
 
 def _cmd_report(args: argparse.Namespace) -> int:

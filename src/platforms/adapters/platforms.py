@@ -4,15 +4,23 @@
 
 from __future__ import annotations
 
+import json
+import zipfile
 from pathlib import Path
 
-from platforms.adapters.base import BaseAdapter, read_platforms_yml
+from platforms.adapters.base import (
+    BaseAdapter,
+    ensure_output_root,
+    read_platforms_yml,
+    sha256_file,
+)
 from platforms.models import (
     ArtifactBundle,
     Detection,
     DoctorReport,
     Finding,
     Plan,
+    TrackState,
 )
 
 
@@ -202,6 +210,25 @@ class VegaAdapter(BaseAdapter):
             metadata={"project": config.get("project", project.name)},
         )
 
+    def doctor(self, project: Path, plan: Plan) -> DoctorReport:
+        report = super().doctor(project, plan)
+        findings = list(report.findings)
+        architecture = read_platforms_yml(project).get("vega_architecture")
+        if architecture not in {"native", "webview"}:
+            findings.append(
+                Finding(
+                    code="missing-vega-architecture",
+                    severity="error",
+                    message="Vega requires an explicit native or webview architecture decision",
+                    remediation="Set vega_architecture: native or webview in platforms.yml",
+                )
+            )
+        return DoctorReport(
+            platform_id=self.id,
+            ready=not any(finding.severity == "error" for finding in findings),
+            findings=tuple(findings),
+        )
+
 
 class WebOsAdapter(BaseAdapter):
     id = "webos"
@@ -213,6 +240,56 @@ class WebOsAdapter(BaseAdapter):
         "appstores/dist/webos/appinfo.json",
     )
     required_tools = (("ares-package", "Install the webOS CLI / ares-package tooling"),)
+
+    def doctor(self, project: Path, plan: Plan) -> DoctorReport:
+        report = super().doctor(project, plan)
+        findings = list(report.findings)
+        candidates = (
+            project / "appinfo.json",
+            project / "appstores/dist/webos/appinfo.json",
+        )
+        appinfo_path = next((path for path in candidates if path.is_file()), None)
+        appinfo: dict[str, object] = {}
+        if appinfo_path is not None:
+            try:
+                parsed = json.loads(appinfo_path.read_text(encoding="utf-8"))
+                if isinstance(parsed, dict):
+                    appinfo = parsed
+            except json.JSONDecodeError:
+                findings.append(
+                    Finding(
+                        code="invalid-webos-appinfo",
+                        severity="error",
+                        message="webOS appinfo.json is not valid JSON",
+                    )
+                )
+        if not isinstance(appinfo.get("version"), str) or not appinfo["version"]:
+            findings.append(
+                Finding(
+                    code="missing-webos-version",
+                    severity="error",
+                    message="webOS appinfo.json must declare a non-empty version",
+                )
+            )
+        icon = appinfo.get("icon")
+        if (
+            appinfo_path is None
+            or not isinstance(icon, str)
+            or not icon
+            or not (appinfo_path.parent / icon).is_file()
+        ):
+            findings.append(
+                Finding(
+                    code="missing-webos-icon",
+                    severity="error",
+                    message="webOS appinfo.json must reference an existing icon",
+                )
+            )
+        return DoctorReport(
+            platform_id=self.id,
+            ready=not any(finding.severity == "error" for finding in findings),
+            findings=tuple(findings),
+        )
 
 
 class TizenAdapter(BaseAdapter):
@@ -261,3 +338,80 @@ class WebKioskAdapter(BaseAdapter):
         "appstores/dist/www/index.html",
     )
     required_tools = ()
+
+
+    def build(self, project: Path, plan: Plan) -> ArtifactBundle:
+        source = project / "www" if (project / "www/index.html").is_file() else project
+        index = source / "index.html"
+        if not index.is_file():
+            return ArtifactBundle(
+                platform_id=self.id,
+                track_state=TrackState.SCAFFOLDED,
+                artifacts=(),
+                notes=("web kiosk build blocked: index.html is missing",),
+            )
+        output_root = ensure_output_root(project, self.id)
+        archive_path = output_root / "web-kiosk.zip"
+        files = [
+            path
+            for path in sorted(source.rglob("*"))
+            if path.is_file()
+            and "dist" not in path.relative_to(source).parts
+            and not any(part.startswith(".") for part in path.relative_to(source).parts)
+        ]
+        with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for path in files:
+                relative = path.relative_to(source).as_posix()
+                info = zipfile.ZipInfo(relative, date_time=(1980, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = 0o644 << 16
+                archive.writestr(info, path.read_bytes())
+        return ArtifactBundle(
+            platform_id=self.id,
+            track_state=TrackState.BUILT,
+            artifacts=(archive_path,),
+            checksums={str(archive_path): sha256_file(archive_path)},
+            notes=("deterministic offline web kiosk archive built",),
+        )
+
+    def validate(self, project: Path, bundle: ArtifactBundle) -> ArtifactBundle:
+        base = super().validate(project, bundle)
+        if base.track_state is not TrackState.VALIDATED:
+            return base
+        archive_path = next(
+            (path for path in bundle.artifacts if path.suffix.lower() == ".zip"),
+            None,
+        )
+        problems: list[str] = []
+        if archive_path is None:
+            problems.append("web kiosk validation requires a zip artifact")
+        else:
+            try:
+                with zipfile.ZipFile(archive_path) as archive:
+                    if archive.testzip() is not None:
+                        problems.append("web kiosk zip contains a corrupt member")
+                    if "index.html" not in archive.namelist():
+                        problems.append("web kiosk zip is missing index.html")
+                    else:
+                        html = archive.read("index.html").decode("utf-8", errors="replace")
+                        lowered = html.lower()
+                        for requirement, marker in (
+                            ("document language", " lang="),
+                            ("document title", "<title"),
+                            ("main landmark", "<main"),
+                        ):
+                            if marker not in lowered:
+                                problems.append(f"index.html is missing {requirement}")
+                        if "http://" in lowered or "https://" in lowered:
+                            problems.append("index.html contains a network URL")
+            except (OSError, zipfile.BadZipFile):
+                problems.append("web kiosk zip cannot be opened")
+        if not problems:
+            return base
+        return ArtifactBundle(
+            platform_id=bundle.platform_id,
+            track_state=TrackState.BUILT,
+            artifacts=bundle.artifacts,
+            checksums=dict(bundle.checksums),
+            notes=base.notes + tuple(problems),
+        )

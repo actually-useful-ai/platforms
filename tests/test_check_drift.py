@@ -143,6 +143,33 @@ class DriftDetectionTests(unittest.TestCase):
         self.assertFalse(report["drift"])
         self.assertEqual(len(report["ignored_roots"]), 2)
 
+    def test_alias_and_stale_managed_drift_are_reported_separately(self) -> None:
+        canonical = self.make_directory("canonical")
+        installed = self.make_directory("installed")
+        self.write_skill(canonical, "platforms-mobile", "mobile\n")
+        self.write_skill(installed, "platforms-mobile", "mobile\n")
+        self.write_skill(installed, "platforms-android", "copied instead of linked\n")
+        self.write_skill(installed, "platforms-retired", "stale\n")
+
+        report = check_drift.compare_roots(
+            canonical,
+            [installed],
+            ["platforms-mobile"],
+            aliases={"platforms-android": "platforms-mobile"},
+            stale_managed_names=["platforms-retired"],
+        )
+
+        root_report = report["roots"][0]
+        self.assertTrue(report["drift"])
+        self.assertEqual(root_report["missing"], [])
+        self.assertEqual(root_report["changed"], [])
+        self.assertEqual(root_report["missing_aliases"], [])
+        self.assertEqual(
+            root_report["changed_aliases"],
+            ["platforms-android"],
+        )
+        self.assertEqual(root_report["stale"], ["platforms-retired"])
+
 
 if __name__ == "__main__":
     unittest.main()

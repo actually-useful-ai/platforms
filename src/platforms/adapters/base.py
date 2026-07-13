@@ -189,29 +189,37 @@ class BaseAdapter(PlatformAdapter):
         )
 
     def build(self, project: Path, plan: Plan) -> ArtifactBundle:
-        output_root = ensure_output_root(project, self.id)
-        marker = output_root / "BUILD_STUB.txt"
-        marker.write_text(
-            f"Platform {self.id} build stub for {project.name}\n"
-            "Replace with deterministic platform packaging in later milestones.\n",
-            encoding="utf-8",
-        )
+        """Return an honest pending result when no concrete builder exists."""
+
         return ArtifactBundle(
             platform_id=self.id,
-            track_state=TrackState.BUILT,
-            artifacts=(marker,),
-            checksums={str(marker): sha256_file(marker)},
-            notes=("stub build; platform-specific packaging pending",),
+            track_state=TrackState.SCAFFOLDED,
+            artifacts=(),
+            checksums={},
+            notes=("no concrete builder is implemented; no build evidence produced",),
         )
 
     def validate(self, project: Path, bundle: ArtifactBundle) -> ArtifactBundle:
-        missing = [path for path in bundle.artifacts if not path.exists()]
+        invalid: list[str] = []
+        if bundle.track_state is not TrackState.BUILT:
+            invalid.append(f"bundle state is {bundle.track_state.value}, not built")
+        if not bundle.artifacts:
+            invalid.append("bundle contains no artifacts")
+        for path in bundle.artifacts:
+            if not path.is_file() or path.stat().st_size == 0:
+                invalid.append(f"missing or empty artifact: {path}")
+                continue
+            if path.name in {"BUILD_STUB.txt", "BUILD_PENDING.txt"}:
+                invalid.append(f"placeholder is not build evidence: {path.name}")
+            expected = bundle.checksums.get(str(path))
+            if expected is not None and sha256_file(path) != expected:
+                invalid.append(f"checksum mismatch: {path}")
         notes = list(bundle.notes)
-        if missing:
-            notes.append(f"missing artifacts: {', '.join(str(path) for path in missing)}")
-            state = TrackState.BUILT
+        if invalid:
+            notes.extend(invalid)
+            state = bundle.track_state
         else:
-            notes.append("stub validation passed for existing artifacts")
+            notes.append("artifact existence, size, and checksums validated")
             state = TrackState.VALIDATED
         return ArtifactBundle(
             platform_id=bundle.platform_id,
@@ -222,6 +230,15 @@ class BaseAdapter(PlatformAdapter):
         )
 
     def package(self, project: Path, bundle: ArtifactBundle) -> ArtifactBundle:
+        if bundle.track_state not in {TrackState.VALIDATED, TrackState.DEVICE_TESTED}:
+            return ArtifactBundle(
+                platform_id=bundle.platform_id,
+                track_state=bundle.track_state,
+                artifacts=bundle.artifacts,
+                checksums=dict(bundle.checksums),
+                notes=bundle.notes
+                + ("store staging blocked: validated build evidence is required",),
+            )
         output_root = ensure_output_root(project, self.id)
         checklist = output_root / "UPLOAD_CHECKLIST.md"
         checklist.write_text(

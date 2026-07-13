@@ -26,6 +26,29 @@
       "type": "array",
       "uniqueItems": true
     },
+    "aliases": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+            "type": "string"
+          },
+          "target": {
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "target"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
     "clients": {
       "additionalProperties": false,
       "properties": {
@@ -118,6 +141,7 @@
     "suite",
     "clients",
     "skills",
+    "aliases",
     "agents"
   ],
   "title": "Platforms Suite Metadata",

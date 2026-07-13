@@ -11,6 +11,7 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest import mock
 
 from tools import generate_manifests
 
@@ -35,6 +36,10 @@ id = "platforms"
 
 [[skills]]
 id = "platforms-intake"
+
+[[aliases]]
+id = "platforms-old"
+target = "platforms"
 
 [[agents]]
 id = "platform-recon"
@@ -174,8 +179,28 @@ class ManifestGenerationTests(unittest.TestCase):
             lock["inventory"],
             {
                 "agents": ["platform-recon"],
+                "aliases": [{"id": "platforms-old", "target": "platforms"}],
                 "skills": ["platforms", "platforms-intake"],
             },
+        )
+
+    def test_alias_inventory_is_sorted_in_lock(self) -> None:
+        suite = VALID_SUITE.replace(
+            '[[aliases]]\nid = "platforms-old"\ntarget = "platforms"',
+            '[[aliases]]\nid = "platforms-zed"\ntarget = "platforms"\n\n'
+            '[[aliases]]\nid = "platforms-old"\ntarget = "platforms-intake"',
+        )
+        root = self.make_root(suite)
+
+        generate_manifests.generate(root)
+
+        lock = json.loads((root / generate_manifests.LOCK_PATH).read_text(encoding="utf-8"))
+        self.assertEqual(
+            lock["inventory"]["aliases"],
+            [
+                {"id": "platforms-old", "target": "platforms-intake"},
+                {"id": "platforms-zed", "target": "platforms"},
+            ],
         )
 
     def test_supported_client_subset_controls_outputs_and_lock(self) -> None:
@@ -232,6 +257,35 @@ class ManifestGenerationTests(unittest.TestCase):
             generate_manifests.generate(root)
 
         self.assertFalse((outside / "plugin.json").exists())
+
+    def test_injected_commit_failure_rolls_back_all_generated_outputs(self) -> None:
+        root = self.make_root()
+        generate_manifests.generate(root)
+        managed_paths = (*generate_manifests.GENERATED_MANIFESTS, generate_manifests.LOCK_PATH)
+        before = {path: (root / path).read_bytes() for path in managed_paths}
+        (root / "suite.toml").write_text(
+            VALID_SUITE.replace('version = "0.1.0"', 'version = "0.1.1"'),
+            encoding="utf-8",
+        )
+        real_replace = generate_manifests.os.replace
+        calls = 0
+
+        def fail_once(source: Path | str, destination: Path | str) -> None:
+            nonlocal calls
+            calls += 1
+            if calls == 3:
+                raise OSError("injected manifest commit failure")
+            real_replace(source, destination)
+
+        with mock.patch.object(generate_manifests.os, "replace", side_effect=fail_once):
+            with self.assertRaisesRegex(OSError, "injected"):
+                generate_manifests.generate(root)
+
+        self.assertEqual(
+            {path: (root / path).read_bytes() for path in managed_paths},
+            before,
+        )
+        self.assertEqual(list(root.glob(".manifest-stage-*")), [])
 
 
 if __name__ == "__main__":

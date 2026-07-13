@@ -1,7 +1,7 @@
 # Project Plan
 
 Maintainer: Luke Steuber  
-Current suite version: 0.2.0
+Current suite version: 0.3.0
 
 ## Objective
 
@@ -22,12 +22,34 @@ Build one canonical, portable suite for platform delivery and publishing workflo
 - Canonical skill and agent prose for the full inventory.
 - Ambient Time used read-only as an acceptance fixture for detection.
 
+### Canonical skill consolidation (0.3.0)
+
+- Consolidated 20 skill directories into nine canonical skills without dropping
+  platform targets, adapter identities, accessibility gates, artifacts, or
+  human-only submission boundaries.
+- Preserved 15 legacy skill names as validated direct aliases in `suite.toml`
+  and the deterministic manifest lock.
+- Added a symlink-safe, dry-runnable, idempotent projection installer with
+  per-client layouts, managed-state cleanup, and post-install drift checks.
+- Split drift reporting into canonical content, alias destinations, and stale
+  managed names.
+- Hardened the release gate with schema-validated aliases, least-privilege skill
+  tools, evidence-based build/validation/package transitions, and compatibility
+  aliases across Claude, Codex, Cursor, and Agents.
+- Added hostile-root/state rejection, rollback-safe projection replacement, and
+  rollback-tested manifest-set generation.
+- Added bounded initial adoption for exact same-name legacy Codex-to-Claude
+  alias links, migrating them to canonical Claude targets.
+- Added bounded adoption of non-Codex same-name links to real projections under
+  another configured supported-client root.
+
 ## Architecture
 
 ```text
 suite.toml
     |
     +-- tools/generate_manifests.py --> client manifests + lock
+    +-- tools/install_projections.py --> safe client copies + links
     +-- tools/check_drift.py --> installed projection drift
     +-- src/platforms/ --> CLI + adapters + kdp pipeline
     +-- skills/ --> canonical skill prose
@@ -39,7 +61,9 @@ suite.toml
 - Create and push the public GitHub repository `actually-useful-ai/platforms` once org create permissions are available for the active `gh` token (local `origin` is already configured).
 - Deeper device packaging (real `.pbw`/APK/ipk builds) once toolchains are present.
 - Tizen/Vega packaging beyond preflight when SDKs and disk space allow.
-- Ongoing cross-client drift checks after skill edits.
+- Concrete builders for adapters that currently remain honestly `scaffolded`.
+- Review and project the 0.3.0 skills into user client roots.
+- Ongoing cross-client drift checks after canonical skill edits.
 
 ## Out of scope
 

@@ -4,7 +4,7 @@ schema_version = 1
 id = "platforms"
 name = "Platforms and Publishing Suite"
 description = "Portable skills and read-only review agents for platform delivery and publishing."
-version = "0.2.0"
+version = "0.3.0"
 author = "Luke Steuber"
 repository = "https://github.com/actually-useful-ai/platforms"
 license = "MIT"
@@ -25,52 +25,79 @@ id = "platforms-release-plan"
 id = "platforms-store-assets"
 
 [[skills]]
-id = "platforms-tv-accessibility"
+id = "platforms-tv"
 
 [[skills]]
-id = "platforms-pebble-watchface"
+id = "platforms-mobile"
 
 [[skills]]
-id = "platforms-pebble-watchapp"
+id = "platforms-kdp"
 
 [[skills]]
-id = "platforms-android"
-
-[[skills]]
-id = "platforms-fire-tablet"
-
-[[skills]]
-id = "platforms-fire-tv"
-
-[[skills]]
-id = "platforms-android-tv"
-
-[[skills]]
-id = "platforms-vega"
-
-[[skills]]
-id = "platforms-webos"
-
-[[skills]]
-id = "platforms-tizen"
-
-[[skills]]
-id = "platforms-roku"
+id = "platforms-pebble"
 
 [[skills]]
 id = "platforms-web-kiosk"
 
-[[skills]]
+[[aliases]]
+id = "platforms-android"
+target = "platforms-mobile"
+
+[[aliases]]
+id = "platforms-fire-tablet"
+target = "platforms-mobile"
+
+[[aliases]]
+id = "platforms-android-tv"
+target = "platforms-tv"
+
+[[aliases]]
+id = "platforms-fire-tv"
+target = "platforms-tv"
+
+[[aliases]]
+id = "platforms-vega"
+target = "platforms-tv"
+
+[[aliases]]
+id = "platforms-webos"
+target = "platforms-tv"
+
+[[aliases]]
+id = "platforms-tizen"
+target = "platforms-tv"
+
+[[aliases]]
+id = "platforms-roku"
+target = "platforms-tv"
+
+[[aliases]]
+id = "platforms-tv-accessibility"
+target = "platforms-tv"
+
+[[aliases]]
 id = "platforms-kdp-book"
+target = "platforms-kdp"
 
-[[skills]]
+[[aliases]]
 id = "platforms-kdp-cover"
+target = "platforms-kdp"
 
-[[skills]]
+[[aliases]]
 id = "platforms-kdp-metadata"
+target = "platforms-kdp"
 
-[[skills]]
+[[aliases]]
 id = "platforms-epub-accessibility"
+target = "platforms-kdp"
+
+[[aliases]]
+id = "platforms-pebble-watchface"
+target = "platforms-pebble"
+
+[[aliases]]
+id = "platforms-pebble-watchapp"
+target = "platforms-pebble"
 
 [[agents]]
 id = "platform-recon"
