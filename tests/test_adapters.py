@@ -159,17 +159,78 @@ class AdapterContractTests(unittest.TestCase):
         self.assertEqual(built.artifacts, ())
         self.assertTrue(any("tizen" in note for note in built.notes))
 
+    @staticmethod
+    def _packaging_runner(calls: list[tuple[str, ...]]):
+        def fake_run(argv, *, cwd, allowed_roots=None, env=None, timeout=None):
+            calls.append(tuple(argv))
+            destination = Path(argv[argv.index("-o") + 1])
+            destination.mkdir(parents=True, exist_ok=True)
+            (destination / "Fixture.wgt").write_bytes(b"PK\x03\x04fixture-widget")
+            return ProcessResult(argv=tuple(argv), returncode=0, stdout="", stderr="")
+
+        return fake_run
+
     def test_tizen_build_produces_a_signed_wgt_package(self) -> None:
         root = self.make_tizen_project()
         adapter = get_adapter("tizen")
         calls: list[tuple[str, ...]] = []
 
+        with mock.patch("platforms.adapters.base._which", return_value=True), mock.patch(
+            "platforms.adapters.platforms.run_allowlisted",
+            side_effect=self._packaging_runner(calls),
+        ):
+            built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertEqual(built.track_state, TrackState.BUILT)
+        wgt = next(path for path in built.artifacts if path.suffix == ".wgt")
+        self.assertTrue(wgt.is_file())
+        self.assertIn(str(wgt), built.checksums)
+        # A staged widget is packaged as-is; build-web is a source-tree step and
+        # must not be required, since it needs the Web CLI package.
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][:2], ("tizen", "package"))
+        self.assertNotIn("build-web", [part for call in calls for part in call])
+
+    def test_tizen_build_finds_the_staged_appstores_widget_root(self) -> None:
+        root = self.make_project()
+        staged = root / "appstores/dist/tizen"
+        staged.mkdir(parents=True)
+        (staged / "config.xml").write_text("<widget/>\n", encoding="utf-8")
+        (staged / "index.html").write_text(
+            '<!doctype html><html lang="en"><title>x</title><main></main></html>\n',
+            encoding="utf-8",
+        )
+        adapter = get_adapter("tizen")
+
+        self.assertEqual(adapter.app_root(root), staged)
+
+        calls: list[tuple[str, ...]] = []
+        with mock.patch("platforms.adapters.base._which", return_value=True), mock.patch(
+            "platforms.adapters.platforms.run_allowlisted",
+            side_effect=self._packaging_runner(calls),
+        ):
+            built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertEqual(built.track_state, TrackState.BUILT)
+
+    def test_tizen_build_leaves_the_widget_source_untouched(self) -> None:
+        root = self.make_tizen_project()
+        staged = root / "appstores/dist/tizen"
+        staged.mkdir(parents=True)
+        (staged / "config.xml").write_text("<widget/>\n", encoding="utf-8")
+        (staged / "index.html").write_text("<html lang=\"en\"></html>\n", encoding="utf-8")
+        before = sorted(path.name for path in staged.iterdir())
+        adapter = get_adapter("tizen")
+        packaged_from: list[Path] = []
+
         def fake_run(argv, *, cwd, allowed_roots=None, env=None, timeout=None):
-            calls.append(tuple(argv))
-            if argv[1] == "package":
-                destination = Path(argv[argv.index("-o") + 1])
-                destination.mkdir(parents=True, exist_ok=True)
-                (destination / "Fixture.wgt").write_bytes(b"PK\x03\x04fixture-widget")
+            packaged_from.append(Path(cwd))
+            # The real CLI signs in place, dropping these into its working copy.
+            for litter in ("author-signature.xml", "signature1.xml", ".manifest.tmp"):
+                (Path(cwd) / litter).write_text("x\n", encoding="utf-8")
+            destination = Path(argv[argv.index("-o") + 1])
+            destination.mkdir(parents=True, exist_ok=True)
+            (destination / "Fixture.wgt").write_bytes(b"PK\x03\x04fixture")
             return ProcessResult(argv=tuple(argv), returncode=0, stdout="", stderr="")
 
         with mock.patch("platforms.adapters.base._which", return_value=True), mock.patch(
@@ -178,11 +239,44 @@ class AdapterContractTests(unittest.TestCase):
             built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
 
         self.assertEqual(built.track_state, TrackState.BUILT)
-        wgt = next(path for path in built.artifacts if path.suffix == ".wgt")
-        self.assertTrue(wgt.is_file())
-        self.assertIn(str(wgt), built.checksums)
-        self.assertEqual(calls[0][:2], ("tizen", "build-web"))
-        self.assertEqual(calls[1][:2], ("tizen", "package"))
+        # Signing byproducts must never land in the project's own widget source.
+        self.assertEqual(sorted(path.name for path in staged.iterdir()), before)
+        self.assertNotEqual(packaged_from[0].resolve(), staged.resolve())
+        self.assertIn("dist", packaged_from[0].parts)
+
+    def test_tizen_default_signature_is_reported_as_test_only(self) -> None:
+        root = self.make_tizen_project()
+        adapter = get_adapter("tizen")
+        calls: list[tuple[str, ...]] = []
+
+        with mock.patch("platforms.adapters.base._which", return_value=True), mock.patch(
+            "platforms.adapters.platforms.run_allowlisted",
+            side_effect=self._packaging_runner(calls),
+        ):
+            built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertNotIn("--sign", calls[0])
+        self.assertTrue(any("emulator" in note or "sideload" in note for note in built.notes))
+        self.assertFalse(any("store" in note.lower() for note in built.notes))
+
+    def test_tizen_configured_profile_is_passed_to_the_signer(self) -> None:
+        root = self.make_tizen_project()
+        (root / "platforms.yml").write_text(
+            "project: fixture\nplatforms: [tizen]\ntizen_profile: AmbientTV\n",
+            encoding="utf-8",
+        )
+        adapter = get_adapter("tizen")
+        calls: list[tuple[str, ...]] = []
+
+        with mock.patch("platforms.adapters.base._which", return_value=True), mock.patch(
+            "platforms.adapters.platforms.run_allowlisted",
+            side_effect=self._packaging_runner(calls),
+        ):
+            built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertIn("--sign", calls[0])
+        self.assertEqual(calls[0][calls[0].index("--sign") + 1], "AmbientTV")
+        self.assertEqual(built.track_state, TrackState.BUILT)
 
     def test_tizen_packaging_failure_does_not_advance_track_state(self) -> None:
         root = self.make_tizen_project()

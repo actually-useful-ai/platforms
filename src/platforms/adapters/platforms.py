@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -317,7 +318,11 @@ class TizenAdapter(BaseAdapter):
     def app_root(self, project: Path) -> Path | None:
         """Return the widget root holding config.xml, or None when absent."""
 
-        for candidate in (project, project / "www"):
+        for candidate in (
+            project,
+            project / "www",
+            project / "appstores/dist/tizen",
+        ):
             if (candidate / "config.xml").is_file():
                 return candidate
         return None
@@ -332,7 +337,12 @@ class TizenAdapter(BaseAdapter):
         )
 
     def build(self, project: Path, plan: Plan) -> ArtifactBundle:
-        """Build and package a Tizen widget through the tizen CLI."""
+        """Package the staged Tizen widget through the tizen CLI.
+
+        `tizen build-web` is deliberately not run. It minifies a source tree
+        into `.buildResult` and needs the Web CLI package, while a staged widget
+        directory is already complete and packages directly.
+        """
 
         source = self.app_root(project)
         if source is None:
@@ -347,26 +357,38 @@ class TizenAdapter(BaseAdapter):
             )
 
         output_root = ensure_output_root(project, self.id)
-        allowed_roots = [project.resolve()]
+        profile = read_platforms_yml(project).get("tizen_profile")
 
-        compiled = run_allowlisted(
-            ["tizen", "build-web"],
-            cwd=source,
-            allowed_roots=allowed_roots,
-            timeout=_CLI_TIMEOUT,
+        # The CLI signs in place, so package a copy. Signing byproducts belong in
+        # the confined output root, never in the project's widget source. The
+        # widget root can be the project root, so never recurse into the output.
+        stage = output_root / "widget"
+        shutil.rmtree(stage, ignore_errors=True)
+        shutil.copytree(
+            source,
+            stage,
+            symlinks=True,
+            ignore=lambda _directory, names: {
+                name
+                for name in names
+                if name in {"dist", "node_modules"} or name.startswith(".")
+            },
         )
-        if compiled.returncode != 0:
-            return self._blocked("tizen build-web failed", _cli_detail(compiled))
+
+        argv = ["tizen", "package", "--type", "wgt"]
+        if profile:
+            argv += ["--sign", str(profile)]
+        argv += ["--", ".", "-o", str(output_root)]
 
         packaged = run_allowlisted(
-            ["tizen", "package", "-t", "wgt", "-o", str(output_root), "--", ".buildResult"],
-            cwd=source,
-            allowed_roots=allowed_roots,
+            argv,
+            cwd=stage,
+            allowed_roots=[project.resolve()],
             timeout=_CLI_TIMEOUT,
         )
         if packaged.returncode != 0:
             return self._blocked(
-                "tizen package failed; signing requires an active security profile",
+                "tizen package failed; signing requires a usable security profile",
                 _cli_detail(packaged),
             )
 
@@ -377,12 +399,21 @@ class TizenAdapter(BaseAdapter):
                 "no build evidence produced"
             )
 
+        signing = (
+            f"signed with the {profile} security profile"
+            if profile
+            else "signed with the default certificate; valid for emulator and "
+            "sideload testing only, never for submission"
+        )
         return ArtifactBundle(
             platform_id=self.id,
             track_state=TrackState.BUILT,
             artifacts=tuple(widgets),
             checksums={str(path): sha256_file(path) for path in widgets},
-            notes=("tizen widget built and signed through the tizen CLI",),
+            notes=(
+                f"packaged the staged widget at {source.name} through the tizen CLI",
+                signing,
+            ),
         )
 
 
