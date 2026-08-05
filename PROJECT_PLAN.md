@@ -72,8 +72,15 @@ suite.toml
 ## Outstanding
 
 - Deeper device packaging (real `.pbw`/APK/ipk builds) once toolchains are present.
-- Tizen/Vega packaging beyond preflight when SDKs and disk space allow.
-- Concrete builders for adapters that currently remain honestly `scaffolded`.
+- Vega packaging beyond preflight when the SDK and disk space allow.
+- Concrete builders for the adapters that remain honestly `scaffolded`. `kdp`,
+  `web-kiosk`, and `tizen` now have real builders; the rest do not.
+- End-to-end `.wgt` evidence for `tizen`. The builder is implemented and unit
+  tested, but no widget has been produced on a real toolchain yet: extracting
+  the Tizen Studio payload yields a working core CLI while the web-app packages
+  stay unregistered, and Samsung's own package manager rejects an extracted
+  tree with "Cannot find installed SDK". Completing that install needs the
+  graphical wizard.
 - Ongoing cross-client drift checks after canonical skill edits, now that the
   bare `check_drift.py` command detects drift instead of always passing.
 

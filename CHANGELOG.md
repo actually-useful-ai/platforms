@@ -25,6 +25,19 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 - `default_client_roots` in `tools/check_drift.py` as the single definition of
   per-client skill roots, now also consumed by `tools/install_projections.py`.
 
+### Added
+
+- A concrete `tizen` builder. `TizenAdapter` runs `build-web` and
+  `package -t wgt` through the allowlisted argv runner and returns the signed
+  widget with its checksum. Missing `config.xml`, a `tizen` CLI absent from
+  PATH, a non-zero CLI exit, and packaging that yields no widget all stay at
+  `scaffolded` and report the real reason.
+- `examples/tizen-sample`, a minimal offline widget fixture with a declared
+  language, title, main landmark, and reduced-motion handling.
+- An optional `post-commit` hook, installed by `scripts/install-hooks.sh`, that
+  warns when a commit changes `skills/` or `suite.toml` while installed
+  projections are stale.
+
 ### Notes
 
 - The corrected check found real drift that the previous one could not: the
