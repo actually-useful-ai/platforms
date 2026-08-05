@@ -53,6 +53,8 @@ Build one canonical, portable suite for platform delivery and publishing workflo
   platform skills at all. Cursor, the only installer-managed root, was clean.
 - All four roots now verify clean, and the 0.3.0 least-privilege frontmatter is
   in effect for every client.
+- Published the suite to `actually-useful-ai/platforms`, which had remained at
+  the pre-consolidation commit while the org token lacked push permission.
 
 ## Architecture
 
@@ -69,7 +71,6 @@ suite.toml
 
 ## Outstanding
 
-- Create and push the public GitHub repository `actually-useful-ai/platforms` once org create permissions are available for the active `gh` token (local `origin` is already configured).
 - Deeper device packaging (real `.pbw`/APK/ipk builds) once toolchains are present.
 - Tizen/Vega packaging beyond preflight when SDKs and disk space allow.
 - Concrete builders for adapters that currently remain honestly `scaffolded`.
