@@ -43,6 +43,17 @@ Build one canonical, portable suite for platform delivery and publishing workflo
 - Added bounded adoption of non-Codex same-name links to real projections under
   another configured supported-client root.
 
+### Drift-check correction and first full projection (unreleased)
+
+- Fixed `check_drift.py` reporting clean whenever it received no installed
+  roots, which made the documented verification command unable to fail.
+- Projected the 0.3.0 skills into all four supported client roots. Claude and
+  Agents had carried pre-consolidation prose since installation, with four
+  skills loading under stub descriptions and no `allowed-tools`; Codex had no
+  platform skills at all. Cursor, the only installer-managed root, was clean.
+- All four roots now verify clean, and the 0.3.0 least-privilege frontmatter is
+  in effect for every client.
+
 ## Architecture
 
 ```text
@@ -62,12 +73,6 @@ suite.toml
 - Deeper device packaging (real `.pbw`/APK/ipk builds) once toolchains are present.
 - Tizen/Vega packaging beyond preflight when SDKs and disk space allow.
 - Concrete builders for adapters that currently remain honestly `scaffolded`.
-- Review and project the 0.3.0 skills into user client roots. The Claude and
-  Agents roots on the maintainer machine still carry pre-consolidation prose:
-  four skills there load with stub descriptions and no `allowed-tools`, so the
-  0.3.0 least-privilege frontmatter is not yet in effect for those clients.
-  Neither root records installer state, so neither was produced by
-  `install_projections.py`. The Codex and Cursor roots are clean.
 - Ongoing cross-client drift checks after canonical skill edits, now that the
   bare `check_drift.py` command detects drift instead of always passing.
 

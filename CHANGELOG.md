@@ -25,6 +25,13 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 - `default_client_roots` in `tools/check_drift.py` as the single definition of
   per-client skill roots, now also consumed by `tools/install_projections.py`.
 
+### Notes
+
+- The corrected check found real drift that the previous one could not: the
+  Claude and Agents roots still held pre-consolidation prose, and Codex held no
+  platform skills. Reprojecting brought all four supported clients to the 0.3.0
+  canonical content, including the least-privilege `allowed-tools` frontmatter.
+
 ## [0.3.0] - 2026-07-12
 
 ### Changed
