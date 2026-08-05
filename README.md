@@ -24,10 +24,17 @@ cd platforms
 PYTHONPATH=src:tools:. python3 -m unittest discover -s tests -v
 ```
 
-Optional editable install with test validators:
+The suite itself has no runtime dependencies. `tests/test_suite_schema.py` needs
+the `test` extra, and skips nothing when it is absent — the module fails to
+import instead, so install the extra before treating a run as complete.
+
+Homebrew and other PEP 668 Python installations refuse to install into the
+system environment, so use a virtual environment:
 
 ```sh
-pip install -e '.[test]'
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[test]'
+PYTHONPATH=src:tools:. .venv/bin/python -m unittest discover -s tests -v
 ```
 
 ## CLI
