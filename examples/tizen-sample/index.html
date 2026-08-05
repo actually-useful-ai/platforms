@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Platforms Tizen Sample</title>
+    <style>
+      body { margin: 0; background: #101014; color: #f2f2f5;
+             font: 1rem/1.5 system-ui, sans-serif; }
+      main { padding: 4vh 6vw; }
+      h1 { font-size: clamp(1.5rem, 4vw, 3rem); }
+      :focus-visible { outline: 3px solid #7cc4ff; outline-offset: 3px; }
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; transition: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="main">
+      <h1>Platforms Tizen Sample</h1>
+      <p>
+        A minimal offline Tizen widget used to exercise the <code>tizen</code>
+        adapter end to end. It ships no network requests and no external assets.
+      </p>
+      <button type="button" id="action">Focusable control</button>
+    </main>
+    <script>
+      document.getElementById('action').addEventListener('click', function () {
+        this.textContent = 'Activated';
+      });
+    </script>
+  </body>
+</html>

@@ -22,6 +22,17 @@ from platforms.models import (
     Plan,
     TrackState,
 )
+from platforms.process import ProcessResult, run_allowlisted
+
+_CLI_TIMEOUT = 600.0
+
+
+def _cli_detail(result: ProcessResult) -> str:
+    """Summarize a failed CLI invocation without leaking a whole log."""
+
+    stream = result.stderr.strip() or result.stdout.strip()
+    line = next((entry for entry in stream.splitlines() if entry.strip()), "")
+    return line.strip()[:200] if line else f"exit status {result.returncode}"
 
 
 class KdpAdapter(BaseAdapter):
@@ -302,6 +313,77 @@ class TizenAdapter(BaseAdapter):
         "appstores/dist/tizen/config.xml",
     )
     required_tools = (("tizen", "Install Tizen Studio and add the tizen CLI to PATH"),)
+
+    def app_root(self, project: Path) -> Path | None:
+        """Return the widget root holding config.xml, or None when absent."""
+
+        for candidate in (project, project / "www"):
+            if (candidate / "config.xml").is_file():
+                return candidate
+        return None
+
+    def _blocked(self, *notes: str) -> ArtifactBundle:
+        return ArtifactBundle(
+            platform_id=self.id,
+            track_state=TrackState.SCAFFOLDED,
+            artifacts=(),
+            checksums={},
+            notes=tuple(note for note in notes if note),
+        )
+
+    def build(self, project: Path, plan: Plan) -> ArtifactBundle:
+        """Build and package a Tizen widget through the tizen CLI."""
+
+        source = self.app_root(project)
+        if source is None:
+            return self._blocked("tizen build blocked: config.xml is missing")
+
+        from platforms.adapters.base import _which
+
+        if not _which("tizen"):
+            return self._blocked(
+                "tizen build blocked: the tizen CLI is not on PATH; "
+                "no build evidence produced"
+            )
+
+        output_root = ensure_output_root(project, self.id)
+        allowed_roots = [project.resolve()]
+
+        compiled = run_allowlisted(
+            ["tizen", "build-web"],
+            cwd=source,
+            allowed_roots=allowed_roots,
+            timeout=_CLI_TIMEOUT,
+        )
+        if compiled.returncode != 0:
+            return self._blocked("tizen build-web failed", _cli_detail(compiled))
+
+        packaged = run_allowlisted(
+            ["tizen", "package", "-t", "wgt", "-o", str(output_root), "--", ".buildResult"],
+            cwd=source,
+            allowed_roots=allowed_roots,
+            timeout=_CLI_TIMEOUT,
+        )
+        if packaged.returncode != 0:
+            return self._blocked(
+                "tizen package failed; signing requires an active security profile",
+                _cli_detail(packaged),
+            )
+
+        widgets = sorted(path for path in output_root.glob("*.wgt") if path.is_file())
+        if not widgets:
+            return self._blocked(
+                "tizen package reported success but produced no .wgt; "
+                "no build evidence produced"
+            )
+
+        return ArtifactBundle(
+            platform_id=self.id,
+            track_state=TrackState.BUILT,
+            artifacts=tuple(widgets),
+            checksums={str(path): sha256_file(path) for path in widgets},
+            notes=("tizen widget built and signed through the tizen CLI",),
+        )
 
 
 class RokuAdapter(BaseAdapter):

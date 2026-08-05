@@ -8,9 +8,11 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest import mock
 
 from platforms.adapters.registry import get_adapter, list_adapters
 from platforms.models import ArtifactBundle, TrackState
+from platforms.process import ProcessResult
 
 
 class AdapterContractTests(unittest.TestCase):
@@ -115,6 +117,95 @@ class AdapterContractTests(unittest.TestCase):
         webos_codes = {finding.code for finding in webos.doctor(root, webos_plan).findings}
         self.assertIn("missing-webos-version", webos_codes)
         self.assertIn("missing-webos-icon", webos_codes)
+
+    def make_tizen_project(self) -> Path:
+        root = self.make_project()
+        (root / "platforms.yml").write_text(
+            "project: fixture\nplatforms: [tizen]\n",
+            encoding="utf-8",
+        )
+        (root / "config.xml").write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<widget xmlns="http://www.w3.org/ns/widgets" '
+            'id="http://example.com/fixture" version="1.0.0">\n'
+            "  <name>Fixture</name>\n"
+            '  <content src="index.html"/>\n'
+            "</widget>\n",
+            encoding="utf-8",
+        )
+        (root / "index.html").write_text(
+            '<!doctype html><html lang="en"><head><title>Fixture</title></head>'
+            '<body><main id="main"><h1>Fixture</h1></main></body></html>\n',
+            encoding="utf-8",
+        )
+        return root
+
+    def test_tizen_build_without_config_xml_stays_scaffolded(self) -> None:
+        root = self.make_project()
+        adapter = get_adapter("tizen")
+        built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertEqual(built.track_state, TrackState.SCAFFOLDED)
+        self.assertEqual(built.artifacts, ())
+        self.assertTrue(any("config.xml" in note for note in built.notes))
+
+    def test_tizen_build_without_cli_reports_missing_toolchain(self) -> None:
+        root = self.make_tizen_project()
+        adapter = get_adapter("tizen")
+        with mock.patch("platforms.adapters.base._which", return_value=False):
+            built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertEqual(built.track_state, TrackState.SCAFFOLDED)
+        self.assertEqual(built.artifacts, ())
+        self.assertTrue(any("tizen" in note for note in built.notes))
+
+    def test_tizen_build_produces_a_signed_wgt_package(self) -> None:
+        root = self.make_tizen_project()
+        adapter = get_adapter("tizen")
+        calls: list[tuple[str, ...]] = []
+
+        def fake_run(argv, *, cwd, allowed_roots=None, env=None, timeout=None):
+            calls.append(tuple(argv))
+            if argv[1] == "package":
+                destination = Path(argv[argv.index("-o") + 1])
+                destination.mkdir(parents=True, exist_ok=True)
+                (destination / "Fixture.wgt").write_bytes(b"PK\x03\x04fixture-widget")
+            return ProcessResult(argv=tuple(argv), returncode=0, stdout="", stderr="")
+
+        with mock.patch("platforms.adapters.base._which", return_value=True), mock.patch(
+            "platforms.adapters.platforms.run_allowlisted", side_effect=fake_run
+        ):
+            built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertEqual(built.track_state, TrackState.BUILT)
+        wgt = next(path for path in built.artifacts if path.suffix == ".wgt")
+        self.assertTrue(wgt.is_file())
+        self.assertIn(str(wgt), built.checksums)
+        self.assertEqual(calls[0][:2], ("tizen", "build-web"))
+        self.assertEqual(calls[1][:2], ("tizen", "package"))
+
+    def test_tizen_packaging_failure_does_not_advance_track_state(self) -> None:
+        root = self.make_tizen_project()
+        adapter = get_adapter("tizen")
+
+        def fake_run(argv, *, cwd, allowed_roots=None, env=None, timeout=None):
+            if argv[1] == "package":
+                return ProcessResult(
+                    argv=tuple(argv),
+                    returncode=1,
+                    stdout="",
+                    stderr="error: No security profile.",
+                )
+            return ProcessResult(argv=tuple(argv), returncode=0, stdout="", stderr="")
+
+        with mock.patch("platforms.adapters.base._which", return_value=True), mock.patch(
+            "platforms.adapters.platforms.run_allowlisted", side_effect=fake_run
+        ):
+            built = adapter.build(root, adapter.plan(root, adapter.detect(root)))
+
+        self.assertEqual(built.track_state, TrackState.SCAFFOLDED)
+        self.assertEqual(built.artifacts, ())
+        self.assertTrue(any("security profile" in note for note in built.notes))
 
     def test_track_states_are_not_inferred_forward(self) -> None:
         root = self.make_project()
