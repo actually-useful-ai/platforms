@@ -15,22 +15,16 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 try:
-    from .check_drift import compare_roots
+    from .check_drift import SUPPORTED_CLIENTS, compare_roots, default_client_roots
     from .generate_manifests import SuiteValidationError, load_suite
 except ImportError:
-    from check_drift import compare_roots
+    from check_drift import SUPPORTED_CLIENTS, compare_roots, default_client_roots
     from generate_manifests import SuiteValidationError, load_suite
 
 
 STATE_FILE = ".platforms-projections.json"
 _MANAGED_NAME = re.compile(r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")
-SUPPORTED_CLIENTS = ("claude", "codex", "cursor", "agents")
-DEFAULT_ROOTS = {
-    "claude": Path.home() / ".claude" / "skills",
-    "codex": Path.home() / ".codex" / "skills",
-    "cursor": Path.home() / ".cursor" / "skills",
-    "agents": Path.home() / ".agents" / "skills",
-}
+DEFAULT_ROOTS = dict(zip(SUPPORTED_CLIENTS, default_client_roots()))
 
 
 class InstallSafetyError(RuntimeError):

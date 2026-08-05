@@ -143,6 +143,80 @@ class DriftDetectionTests(unittest.TestCase):
         self.assertFalse(report["drift"])
         self.assertEqual(len(report["ignored_roots"]), 2)
 
+    def test_omitted_roots_fail_closed_instead_of_reporting_clean(self) -> None:
+        canonical = self.make_directory("canonical")
+        empty_home = self.make_directory("home")
+        self.write_skill(canonical, "platforms", "canonical\n")
+        stdout = StringIO()
+
+        with redirect_stdout(stdout):
+            exit_code = check_drift.main(
+                [
+                    "--canonical-root",
+                    str(canonical),
+                    "--managed-skill",
+                    "platforms",
+                    "--client-home",
+                    str(empty_home),
+                ]
+            )
+
+        result = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(result["status"], "error")
+        self.assertNotIn("drift", result)
+
+    def test_allow_no_roots_permits_an_explicit_empty_check(self) -> None:
+        canonical = self.make_directory("canonical")
+        empty_home = self.make_directory("home")
+        self.write_skill(canonical, "platforms", "canonical\n")
+        stdout = StringIO()
+
+        with redirect_stdout(stdout):
+            exit_code = check_drift.main(
+                [
+                    "--canonical-root",
+                    str(canonical),
+                    "--managed-skill",
+                    "platforms",
+                    "--client-home",
+                    str(empty_home),
+                    "--allow-no-roots",
+                ]
+            )
+
+        result = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 0)
+        self.assertFalse(result["drift"])
+        self.assertEqual(result["roots"], [])
+
+    def test_omitted_roots_default_to_existing_client_roots(self) -> None:
+        canonical = self.make_directory("canonical")
+        home = self.make_directory("home")
+        self.write_skill(canonical, "platforms", "canonical\n")
+        claude_root = home / ".claude" / "skills"
+        claude_root.mkdir(parents=True)
+        self.write_skill(claude_root, "platforms", "drifted\n")
+        stdout = StringIO()
+
+        with redirect_stdout(stdout):
+            exit_code = check_drift.main(
+                [
+                    "--canonical-root",
+                    str(canonical),
+                    "--managed-skill",
+                    "platforms",
+                    "--client-home",
+                    str(home),
+                ]
+            )
+
+        result = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 1)
+        self.assertTrue(result["drift"])
+        self.assertEqual(result["discovered_roots"], [str(claude_root.resolve())])
+        self.assertEqual(result["roots"][0]["changed"], ["platforms/SKILL.md"])
+
     def test_alias_and_stale_managed_drift_are_reported_separately(self) -> None:
         canonical = self.make_directory("canonical")
         installed = self.make_directory("installed")

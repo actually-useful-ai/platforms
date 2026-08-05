@@ -71,6 +71,12 @@ python3 tools/install_projections.py --dry-run
 python3 -m unittest tests.test_suite_schema -v
 ```
 
+`check_drift.py` without positional roots discovers the conventional skill root for
+each supported client, compares the ones that exist, and lists them under
+`discovered_roots`. It exits `1` on drift and fails closed with exit `2` when no
+root is found at all. Pass `--allow-no-roots` to assert deliberately that nothing
+is installed, or `--client-home` to review a temporary home.
+
 The installer copies canonical skills into Claude and creates valid sibling-relative
 legacy aliases. Codex receives direct absolute links to those Claude projections.
 Cursor and Agents receive canonical copies plus sibling-relative aliases.

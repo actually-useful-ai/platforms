@@ -1,5 +1,5 @@
-# File Purpose: Compare canonical skills with optional installed projections without editing them.
-# Primary Functions/Classes: is_ignored_root, compare_roots, and main.
+# File Purpose: Compare canonical skills with installed projections without editing them.
+# Primary Functions/Classes: is_ignored_root, default_client_roots, compare_roots, and main.
 # Inputs/Outputs: Reads skill trees and suite metadata; emits stable JSON and drift exit status.
 
 from __future__ import annotations
@@ -39,6 +39,14 @@ _IGNORED_PROJECTION_SUFFIXES = {
     ".pyo",
 }
 _STATE_FILE = ".platforms-projections.json"
+SUPPORTED_CLIENTS = ("claude", "codex", "cursor", "agents")
+
+
+def default_client_roots(home: Path | None = None) -> list[Path]:
+    """Return the conventional skill root for every supported client."""
+
+    base = (home or Path.home()).expanduser()
+    return [base / f".{client}" / "skills" for client in SUPPORTED_CLIENTS]
 
 
 def is_ignored_root(root: Path) -> bool:
@@ -196,7 +204,18 @@ def _parser() -> argparse.ArgumentParser:
         metavar="ROOT",
         nargs="*",
         type=Path,
-        help="installed skill roots to compare; omitted roots produce a clean report",
+        help="installed skill roots to compare; omitted roots fall back to discovery",
+    )
+    parser.add_argument(
+        "--client-home",
+        type=Path,
+        default=None,
+        help="home directory searched for supported-client skill roots",
+    )
+    parser.add_argument(
+        "--allow-no-roots",
+        action="store_true",
+        help="report clean when no installed root is given or discovered",
     )
     parser.add_argument(
         "--canonical-root",
@@ -244,12 +263,33 @@ def main(argv: Sequence[str] | None = None) -> int:
         else {item["id"]: item["target"] for item in suite_data["aliases"]}
     )
 
+    installed_roots = list(args.installed_roots)
+    discovered_roots: list[str] = []
+    if not installed_roots:
+        for candidate in default_client_roots(args.client_home):
+            if candidate.is_dir():
+                installed_roots.append(candidate)
+                discovered_roots.append(str(candidate.resolve(strict=False)))
+    if not installed_roots and not args.allow_no_roots:
+        report = {
+            "error": (
+                "no installed skill root was given or discovered; pass roots "
+                "explicitly or use --allow-no-roots to assert none are installed"
+            ),
+            "ignored_roots": [],
+            "roots": [],
+            "status": "error",
+        }
+        print(json.dumps(report, indent=2, sort_keys=True))
+        return 2
+
     report = compare_roots(
         args.canonical_root,
-        args.installed_roots,
+        installed_roots,
         managed_skills,
         aliases=aliases,
     )
+    report["discovered_roots"] = sorted(discovered_roots)
     print(json.dumps(report, indent=2, sort_keys=True))
     return 1 if report["drift"] else 0
 

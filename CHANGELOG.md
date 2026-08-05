@@ -2,6 +2,29 @@
 
 All notable changes to the Platforms and Publishing Suite are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- `tools/check_drift.py` no longer reports a clean result when it is given no
+  installed roots. The bare command documented in `README.md` and `AGENTS.md`
+  previously returned `drift: false` and exit `0` unconditionally, so it could
+  not fail and masked real drift in installed projections.
+
+### Changed
+
+- An invocation without positional roots now discovers the conventional skill
+  root for every supported client and compares the ones that exist, reporting
+  them under `discovered_roots`.
+- Discovering no root at all fails closed with exit `2` instead of reporting
+  clean; `--allow-no-roots` restores the old behavior as an explicit assertion.
+
+### Added
+
+- `--client-home` to point root discovery at a temporary home for review runs.
+- `default_client_roots` in `tools/check_drift.py` as the single definition of
+  per-client skill roots, now also consumed by `tools/install_projections.py`.
+
 ## [0.3.0] - 2026-07-12
 
 ### Changed
