@@ -78,6 +78,18 @@ python3 tools/install_projections.py --dry-run
 python3 -m unittest tests.test_suite_schema -v
 ```
 
+An optional git hook warns after any commit that changes `skills/` or `suite.toml`
+while installed projections are stale:
+
+```sh
+bash scripts/install-hooks.sh
+```
+
+It is advisory only and never blocks a commit. Installation is skipped with an
+explanation when `core.hooksPath` points at a shared hooks directory, because
+writing there would affect every repository; run `check_drift.py` directly in
+that case.
+
 `check_drift.py` without positional roots discovers the conventional skill root for
 each supported client, compares the ones that exist, and lists them under
 `discovered_roots`. It exits `1` on drift and fails closed with exit `2` when no

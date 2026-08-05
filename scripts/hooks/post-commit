@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# File Purpose: Warn after a commit that changes canonical skills without reprojection.
+# Primary Functions/Classes: Post-commit advisory check only; never blocks or edits.
+# Inputs/Outputs: Reads the committed file list; runs check_drift and prints guidance.
+
+set -uo pipefail
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+[ -n "$ROOT" ] || exit 0
+
+# Only speak up when this commit actually touched canonical suite content.
+CHANGED="$(git diff-tree --no-commit-id --name-only -r HEAD -- skills/ suite.toml 2>/dev/null)"
+[ -n "$CHANGED" ] || exit 0
+
+python3 "$ROOT/tools/check_drift.py" >/dev/null 2>&1
+STATUS=$?
+
+# 0 = every discovered root matches canonical.
+# 2 = no client root discovered; a contributor with nothing installed is fine.
+[ "$STATUS" -eq 1 ] || exit 0
+
+echo
+echo "platforms: canonical skills changed and installed projections are now stale."
+echo "  inspect:   python3 tools/check_drift.py"
+echo "  reproject: python3 tools/install_projections.py"
+echo "  (advisory only; the commit succeeded)"
+echo
+exit 0
