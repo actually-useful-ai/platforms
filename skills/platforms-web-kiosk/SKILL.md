@@ -13,6 +13,7 @@ Package offline web experiences for kiosk or always-on displays.
 - Keyboard and switch access, logical order, and visible focus
 - Correct landmarks, labels, language, and screen-reader semantics
 - Readable contrast, reduced motion, and text zoom without clipped content
+- Status, selection, and error states readable without hue, checked under simulated deuteranopia, protanopia, tritanopia, and grayscale
 - Full-screen / kiosk policy documented
 - Stage files under `dist/platforms/web-kiosk` with an upload checklist when a host store exists
 

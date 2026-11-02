@@ -232,6 +232,24 @@ class SkillConsolidationTests(unittest.TestCase):
         self.assertIn("recorded store specification source", release_plan)
         self.assertNotIn("come from adapters", release_plan)
 
+    def test_visual_targets_require_color_vision_checks(self) -> None:
+        visual_skills = (
+            "platforms",
+            "platforms-store-assets",
+            "platforms-tv",
+            "platforms-mobile",
+            "platforms-kdp",
+            "platforms-pebble",
+            "platforms-web-kiosk",
+        )
+        for skill_id in visual_skills:
+            text = (ROOT / "skills" / skill_id / "SKILL.md").read_text(
+                encoding="utf-8"
+            )
+            for phrase in ("deuteranopia", "without hue"):
+                with self.subTest(skill=skill_id, phrase=phrase):
+                    self.assertIn(phrase, text)
+
 
 if __name__ == "__main__":
     unittest.main()

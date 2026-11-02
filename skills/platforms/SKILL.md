@@ -27,4 +27,4 @@ Never infer a later state from an earlier one.
 ## Hard limits
 - No credentials in reports.
 - No automated store login or publish for KDP or device stores in v1.
-- Accessibility is mandatory for every target.
+- Accessibility is mandatory for every target, including color vision: every status, focus state, and chart must read without hue and be checked under simulated deuteranopia, protanopia, tritanopia, and grayscale.

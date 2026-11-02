@@ -22,7 +22,7 @@ Deliver Pebble watchface and watchapp projects through the `pebble` adapter and 
 5. Capture screenshots and inspect logs.
 6. Package only after validation evidence exists.
 
-Install, input, screenshot, and log capture prove `device-tested`; they do not prove store submission. Maintain readable contrast, glanceable text, clear button behavior, and non-color-only status cues.
+Install, input, screenshot, and log capture prove `device-tested`; they do not prove store submission. Maintain readable contrast, glanceable text, clear button behavior, and non-color-only status cues. On color models, check the face under simulated deuteranopia so battery, alerts, and complications still read without hue.
 
 ## Source and submission boundaries
 

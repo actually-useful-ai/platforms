@@ -35,6 +35,7 @@ Build an upload-ready publishing bundle from `book.yml` and a Markdown manuscrip
 - Validate heading order, document language, navigation, landmarks, reading order, image alternatives, and table headers.
 - Run EPUBCheck and Ace by DAISY when installed.
 - Manually review reflow and contrast in embedded images.
+- Check charts, diagrams, and the cover under simulated deuteranopia and grayscale; meaning in figures must survive without hue, since many e-readers display grayscale only.
 - Fail closed on missing critical alt text; warn clearly when optional validation tools are absent.
 
 ## Human submission gate
