@@ -25,6 +25,7 @@ Use the adapter IDs exactly as written. Do not merge adapter evidence merely bec
 - Provide screen-reader or TTS labels where supported, including TalkBack-friendly labels on Android TV.
 - Verify captions and audio descriptions whenever media exists.
 - Respect reduced motion, readable contrast, and readable TV-distance sizing.
+- Keep focus rings, selected tabs, and status chips readable without hue, and check them under simulated deuteranopia and grayscale; TV color modes and viewing distance wash out hue further.
 - Remove touch-only primary flows and document screensaver/always-on behavior.
 - Record actual emulator/device evidence; never mark `device-tested` from static inspection.
 
