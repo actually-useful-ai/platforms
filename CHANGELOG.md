@@ -24,6 +24,12 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 - Color-vision checks in every visual skill: status, focus, figures, icons,
   and screenshots must read without hue under simulated deuteranopia and
   grayscale, pinned by `test_visual_targets_require_color_vision_checks`.
+- Store assets stage the store's accessibility declarations with the bundle
+  (Apple's Accessibility Nutrition Labels), claim a feature only when every
+  common task works with it, and keep the device evidence beside the claim.
+  Apple screenshot and preview sizes live in one dated record that is
+  re-checked against the live page. Pinned by
+  `test_store_assets_stage_accessibility_declarations_with_evidence`.
 - `--client-home` to point root discovery at a temporary home for review runs.
 - `default_client_roots` in `tools/check_drift.py` as the single definition of
   per-client skill roots, now also consumed by `tools/install_projections.py`.
