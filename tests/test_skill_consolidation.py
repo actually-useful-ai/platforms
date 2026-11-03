@@ -250,6 +250,21 @@ class SkillConsolidationTests(unittest.TestCase):
                 with self.subTest(skill=skill_id, phrase=phrase):
                     self.assertIn(phrase, text)
 
+    def test_store_assets_stage_accessibility_declarations_with_evidence(self) -> None:
+        store_assets = (ROOT / "skills/platforms-store-assets/SKILL.md").read_text(
+            encoding="utf-8"
+        )
+
+        for phrase in (
+            "accessibility declarations",
+            "Accessibility Nutrition Labels",
+            "every common task",
+            "device evidence",
+            "one dated record",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, store_assets)
+
 
 if __name__ == "__main__":
     unittest.main()
