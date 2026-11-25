@@ -112,7 +112,7 @@ class SkillConsolidationTests(unittest.TestCase):
     def test_suite_has_ten_canonical_skills_and_fifteen_aliases(self) -> None:
         suite = generate_manifests.load_suite(ROOT / "suite.toml")
 
-        self.assertEqual(suite["suite"]["version"], "0.3.0")
+        self.assertEqual(suite["suite"]["version"], "0.4.0")
         self.assertEqual({item["id"] for item in suite["skills"]}, EXPECTED_CANONICAL)
         self.assertEqual(
             {item["id"]: item["target"] for item in suite["aliases"]},

@@ -1,6 +1,6 @@
 # Platforms and Publishing Suite
 
-`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.3.0 consolidates the suite into canonical skills (ten since `platforms-fdroid` was added) while preserving 15 legacy names as explicit aliases.
+`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.4.0 has ten canonical skills, the newest being `platforms-fdroid`, and keeps 15 legacy names as explicit aliases.
 
 ## What it does
 

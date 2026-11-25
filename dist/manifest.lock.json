@@ -10,37 +10,37 @@
       "executable": false,
       "mode": "0644",
       "path": ".claude-plugin/marketplace.json",
-      "sha256": "4f567eb2b29ee1ed1ccd34caba41d54fbec7d39f39bee2e3b7436f43fa9a9ae2"
+      "sha256": "ccc7313c3c063c1173ac238be648b8b49866ba3e5c6fe3329735f664d5acbdd4"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".claude-plugin/plugin.json",
-      "sha256": "0ff771bedb3cb47e308ff6af4c47fcdce6277ac16c232ed2437a9036ea0dc3b3"
+      "sha256": "18d4fb24eb591d81e6c145c3f9d7faefc760516de3c6a432190533caec280a84"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".codex-plugin/plugin.json",
-      "sha256": "76c49b70dd09c3fc4477a1ae9dde7f89b097a8f7b3a1aa45dd271db0bda84dee"
+      "sha256": "8e3bb42d7fcba66830b68f12e2570fb8bc47a6909d01acff0a15b2a2ca13596f"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".cursor-plugin/marketplace.json",
-      "sha256": "4f567eb2b29ee1ed1ccd34caba41d54fbec7d39f39bee2e3b7436f43fa9a9ae2"
+      "sha256": "ccc7313c3c063c1173ac238be648b8b49866ba3e5c6fe3329735f664d5acbdd4"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": ".cursor-plugin/plugin.json",
-      "sha256": "39e5141a9c8b4b22e5b97c57309898ff67cf190a9338ed51d948a79269222fef"
+      "sha256": "d56f75f7cbc89cfa27ac5f7a5b2244b2d1b47b6de8990756f161773d5ed1c33a"
     },
     {
       "executable": false,
       "mode": "0644",
       "path": "suite.toml",
-      "sha256": "c75356ee04827b517dee8fe9c93344410a2314479d453f8d1db0bf56dc6d3bf8"
+      "sha256": "7d5e7a71a498941dc707f20778a7a17dbd51bf84e386aa51a051bc35291bd908"
     }
   ],
   "inventory": {
@@ -125,7 +125,7 @@
       "platforms-fdroid"
     ]
   },
-  "suite_version": "0.3.0",
+  "suite_version": "0.4.0",
   "supported_clients": [
     "agents",
     "claude",
