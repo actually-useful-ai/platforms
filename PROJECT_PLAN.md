@@ -1,7 +1,7 @@
 # Project Plan
 
 Maintainer: Luke Steuber  
-Current suite version: 0.3.0
+Current suite version: 0.4.0
 
 ## Objective
 

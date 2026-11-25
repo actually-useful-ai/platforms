@@ -4,6 +4,8 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-24
+
 ### Added
 
 - `platforms-fdroid`, a tenth canonical skill for taking an Android app into
@@ -15,35 +17,12 @@ All notable changes to the Platforms and Publishing Suite are documented here.
   before every outward step. Two scripts ship with it: `listing_sources.py`
   (which folders fdroidserver takes listing text from, optionally through
   fdroidserver itself) and `request_words.py` (words above the checklist).
-- `docs/fdroid-new-app-evidence-2026-11.md`, the study of 180 merged and 120
+- `docs/fdroid-new-app-evidence-2026-11.md`, the study of 180 merged and 300
   closed "New App" requests the skill's rules are drawn from, with the
   collection and analysis scripts under `docs/research/fdroid-new-apps/`.
 - Routing evals for the new skill under `evals/` (`claude plugin eval`), and
   unit tests for its routing contract, stop gates, reference links and scripts
   (`tests/test_fdroid_skill.py`). The reference-link test covers every skill.
-
-### Changed
-
-- The `platforms` router sends F-Droid main-catalog work to
-  `platforms-fdroid`, and `platforms-mobile` hands it over explicitly.
-
-### Fixed
-
-- `tools/check_drift.py` no longer reports a clean result when it is given no
-  installed roots. The bare command documented in `README.md` and `AGENTS.md`
-  previously returned `drift: false` and exit `0` unconditionally, so it could
-  not fail and masked real drift in installed projections.
-
-### Changed
-
-- An invocation without positional roots now discovers the conventional skill
-  root for every supported client and compares the ones that exist, reporting
-  them under `discovered_roots`.
-- Discovering no root at all fails closed with exit `2` instead of reporting
-  clean; `--allow-no-roots` restores the old behavior as an explicit assertion.
-
-### Added
-
 - Color-vision checks in every visual skill: status, focus, figures, icons,
   and screenshots must read without hue under simulated deuteranopia and
   grayscale, pinned by `test_visual_targets_require_color_vision_checks`.
@@ -56,9 +35,6 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 - `--client-home` to point root discovery at a temporary home for review runs.
 - `default_client_roots` in `tools/check_drift.py` as the single definition of
   per-client skill roots, now also consumed by `tools/install_projections.py`.
-
-### Added
-
 - A concrete `tizen` builder. `TizenAdapter` runs `build-web` and
   `package -t wgt` through the allowlisted argv runner and returns the signed
   widget with its checksum. Missing `config.xml`, a `tizen` CLI absent from
@@ -69,6 +45,23 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 - An optional `post-commit` hook, installed by `scripts/install-hooks.sh`, that
   warns when a commit changes `skills/` or `suite.toml` while installed
   projections are stale.
+
+### Changed
+
+- The `platforms` router sends F-Droid main-catalog work to
+  `platforms-fdroid`, and `platforms-mobile` hands it over explicitly.
+- An invocation without positional roots now discovers the conventional skill
+  root for every supported client and compares the ones that exist, reporting
+  them under `discovered_roots`.
+- Discovering no root at all fails closed with exit `2` instead of reporting
+  clean; `--allow-no-roots` restores the old behavior as an explicit assertion.
+
+### Fixed
+
+- `tools/check_drift.py` no longer reports a clean result when it is given no
+  installed roots. The bare command documented in `README.md` and `AGENTS.md`
+  previously returned `drift: false` and exit `0` unconditionally, so it could
+  not fail and masked real drift in installed projections.
 
 ### Notes
 
