@@ -5,6 +5,7 @@
 | KDP | `kdp` | EPUB + print/cover bundle | `book.yml` | Manual upload only |
 | Pebble | `pebble` | `.pbw` | package markers / platforms.yml | rePebble CLI |
 | Android | `android` | APK/AAB | Gradle/manifest | Shared primitives |
+| F-Droid main catalog | none (skill `platforms-fdroid`) | fdroiddata recipe + merge request | Gradle/manifest | Human approves every post; maintainers merge |
 | Fire Tablet | `fire-tablet` | APK | Android spine | Amazon store manual |
 | Fire TV | `fire-tv` | APK | Leanback checks | D-pad required |
 | Android TV | `android-tv` | APK | Leanback checks | Separate track from Fire TV |

@@ -1,6 +1,6 @@
 # Platforms and Publishing Suite
 
-`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.3.0 consolidates the suite into nine canonical skills while preserving 15 legacy names as explicit aliases.
+`platforms` is the canonical cross-client home for portable platform-delivery and publishing workflows maintained by Luke Steuber. Version 0.3.0 consolidates the suite into canonical skills (ten since `platforms-fdroid` was added) while preserving 15 legacy names as explicit aliases.
 
 ## What it does
 
@@ -9,6 +9,8 @@
 - Builds and validates artifacts into confined output roots
 - Stages store packages and human upload checklists
 - Stops before automated store login or publish (especially KDP)
+- Takes an Android app into F-Droid's main catalog (`platforms-fdroid`): fit check, recipe,
+  local checks with CI's tool versions, request text and review, stopping before every post
 
 ## Requirements
 
@@ -68,7 +70,7 @@ Output lands in `dist/<slug>/<version>/` with EPUB, print PDF or pending marker,
 
 ## Canonical metadata
 
-`suite.toml` is the sole authority for identity, version, supported clients, nine canonical skills, 15 aliases, and four read-only agents. Run:
+`suite.toml` is the sole authority for identity, version, supported clients, ten canonical skills, 15 aliases, and four read-only agents. Run:
 
 ```sh
 python3 tools/generate_manifests.py

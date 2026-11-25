@@ -1,4 +1,4 @@
-# File Purpose: Verify the nine-skill consolidation, aliases, and merged skill contracts.
+# File Purpose: Verify the canonical skill inventory, aliases, and merged skill contracts.
 # Primary Functions/Classes: SkillConsolidationTests.
 # Inputs/Outputs: Reads suite.toml and canonical SKILL.md files; asserts inventory and content.
 
@@ -24,6 +24,7 @@ EXPECTED_CANONICAL = {
     "platforms-kdp",
     "platforms-pebble",
     "platforms-web-kiosk",
+    "platforms-fdroid",
 }
 EXPECTED_ALIASES = {
     "platforms-android": "platforms-mobile",
@@ -83,6 +84,16 @@ EXPECTED_TOOLS = {
         "WebFetch",
     },
     "platforms-web-kiosk": {"Read", "Write", "Edit", "Glob", "Grep", "Bash"},
+    "platforms-fdroid": {
+        "Read",
+        "Write",
+        "Edit",
+        "Glob",
+        "Grep",
+        "Bash",
+        "WebFetch",
+        "AskUserQuestion",
+    },
 }
 MAXIMAL_TOOLS = {
     "Read",
@@ -98,7 +109,7 @@ MAXIMAL_TOOLS = {
 
 
 class SkillConsolidationTests(unittest.TestCase):
-    def test_suite_has_nine_canonical_skills_and_fifteen_aliases(self) -> None:
+    def test_suite_has_ten_canonical_skills_and_fifteen_aliases(self) -> None:
         suite = generate_manifests.load_suite(ROOT / "suite.toml")
 
         self.assertEqual(suite["suite"]["version"], "0.3.0")
@@ -199,6 +210,27 @@ class SkillConsolidationTests(unittest.TestCase):
                 "human",
                 "Never automate KDP login",
             ),
+            "platforms-fdroid": (
+                "fdroiddata",
+                "Quality point 6",
+                "Trusted Web Activit",
+                "website wrapper",
+                "R8",
+                "dependenciesInfo",
+                "vcsInfo",
+                "SOURCE_DATE_EPOCH",
+                "root `metadata/`",
+                "AllowedAPKSigningKeys",
+                "Binaries",
+                "AutoUpdateMode",
+                "UpdateCheckData",
+                "rewritemeta",
+                "checkupdates",
+                "scanner",
+                "ruamel.yaml",
+                "exact text",
+                "human",
+            ),
             "platforms-pebble": (
                 "pebble",
                 "watchface",
@@ -241,6 +273,7 @@ class SkillConsolidationTests(unittest.TestCase):
             "platforms-kdp",
             "platforms-pebble",
             "platforms-web-kiosk",
+            "platforms-fdroid",
         )
         for skill_id in visual_skills:
             text = (ROOT / "skills" / skill_id / "SKILL.md").read_text(

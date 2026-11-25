@@ -1,6 +1,6 @@
 ---
 name: platforms-mobile
-description: Use when building, validating, device-testing, or store-staging Android phone/tablet and Amazon Fire tablet packages.
+description: Use when building, validating, device-testing, or store-staging Android phone/tablet and Amazon Fire tablet packages for Google Play, Amazon or direct download. Not for F-Droid's main catalog, which `platforms-fdroid` covers.
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 ---
 
@@ -14,6 +14,7 @@ Deliver shared Android-family mobile artifacts while preserving store and device
 - `fire-tablet`: Amazon Fire tablet APK on the Android spine, with Amazon metadata and capability declarations.
 
 Do not use this skill for `android-tv` or `fire-tv`; route those adapters to `platforms-tv`.
+For F-Droid's main catalog (fdroiddata recipe, reproducible build, "New app" request), use `platforms-fdroid`.
 
 ## Android checks
 

@@ -15,7 +15,7 @@ Route platform-delivery and publishing work to the correct specialized skill.
 ## Workflow
 1. Run intake (`platforms-intake`) to identify targets and constraints.
 2. Build a release plan (`platforms-release-plan`) with explicit track states.
-3. Route TV targets to `platforms-tv`, Android/Fire tablet to `platforms-mobile`, books to `platforms-kdp`, Pebble to `platforms-pebble`, and kiosks to `platforms-web-kiosk`.
+3. Route TV targets to `platforms-tv`, Android/Fire tablet to `platforms-mobile`, books to `platforms-kdp`, Pebble to `platforms-pebble`, and kiosks to `platforms-web-kiosk`. Route F-Droid main-catalog submissions (fdroiddata recipes, "New app" merge requests, their review) to `platforms-fdroid`.
 4. Use `platforms-store-assets` for local asset staging. Never collapse strategy, generation, preflight, staging, and submission into one step.
 5. Use the `platforms` CLI (`detect`, `plan`, `doctor`, `build`, `validate`, `package`, `report`) for deterministic work.
 6. Stop at human upload/submission gates.
