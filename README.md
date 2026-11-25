@@ -10,7 +10,8 @@
 - Stages store packages and human upload checklists
 - Stops before automated store login or publish (especially KDP)
 - Takes an Android app into F-Droid's main catalog (`platforms-fdroid`): fit check, recipe,
-  local checks with CI's tool versions, request text and review, stopping before every post
+  a release check that blocks filing while R8 is off, local checks with CI's tool versions,
+  request text and review, stopping before every post
 
 ## Requirements
 

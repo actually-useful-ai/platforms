@@ -63,6 +63,9 @@ Build one canonical, portable suite for platform delivery and publishing workflo
   in one author's submissions. The skill stops for the owner before every
   release, merge request, comment and commit to an open request.
 - Added routing evals (`evals/fdroid-*`) for `claude plugin eval`.
+- Made R8 and `dependenciesInfo` a blocker before filing, checked by
+  `scripts/release_check.py` at the recipe's commit, after maintainers asked
+  for R8 on two requests in a row (Hexsweeper !57772, Solar Orrery !58981).
 
 ## Architecture
 

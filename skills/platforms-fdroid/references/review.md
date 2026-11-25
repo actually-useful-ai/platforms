@@ -35,7 +35,8 @@ commit and say so in the reply. Keep the single build entry; update `CurrentVers
 `CurrentVersionCode` with it.
 
 If the fix needs a change in the app itself (R8, `dependenciesInfo`, a listing-text folder), it
-needs a new release: the owner signs and tags it, then the build entry moves to the new tag.
+needs a new release: the owner signs and tags it, then the build entry moves to the new tag. For R8
+and `dependenciesInfo`, run `scripts/release_check.py` at the new commit before moving the entry.
 
 ## A new version while the request is open
 
@@ -43,7 +44,8 @@ needs a new release: the owner signs and tags it, then the build entry moves to 
    points, before anything changes in fdroiddata.
 2. Replace the one build entry (version name, version code, full commit hash) and the two
    `Current*` fields. Do not add a second entry.
-3. Run the local checks, including `fdroid build` against the new reference APK.
+3. Run `scripts/release_check.py` at the new commit, then the local checks, including `fdroid build`
+   against the new reference APK.
 4. Commit to the same fork branch, check the raw file's hash, wait for the pipeline.
 5. Post one short note: the new version and what changed for review (for example "R8 is on now").
 

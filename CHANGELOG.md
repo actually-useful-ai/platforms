@@ -4,6 +4,29 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- `platforms-fdroid` ships `scripts/release_check.py`, which reads the Android
+  module's `build.gradle` or `build.gradle.kts` at the commit a recipe names
+  and fails when the release build has R8 off or `dependenciesInfo` leaves
+  `includeInApk` on. It handles both Gradle DSLs, `release { }` and
+  `getByName("release")` blocks, flavor overrides (`--flavor`), and the signed
+  reference APK's signing block (`--apk`) for apps signed outside Gradle. When
+  a value comes from a variable or the variant API it reports UNKNOWN instead
+  of passing. Tests use excerpts of Solar Orrery, Mandaza and Hexsweeper
+  before and after R8.
+- An eval case, `fdroid-r8-off-blocks-filing`, where the expected answer to a
+  filing request with R8 off is to stop and turn it on in a new release.
+
+### Changed
+
+- R8 and `dependenciesInfo` are now a blocker in `platforms-fdroid`: run
+  `release_check.py` at the recipe's commit before filing or adding a build,
+  and do not file while it fails. Turning R8 on belongs in the release that
+  gets filed, and that build is tested minified on an emulator before signing. The request text no
+  longer lists "R8 off" as something to explain. Maintainers asked for R8 on
+  Hexsweeper (!57772) and again on Solar Orrery (!58981).
+
 ## [0.4.0] - 2026-11-24
 
 ### Added

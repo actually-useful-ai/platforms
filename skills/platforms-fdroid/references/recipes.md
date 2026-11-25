@@ -152,6 +152,8 @@ Counts are in [evidence.md](evidence.md).
 - Opaque prebuild steps (scripts that rewrite or delete source, `sed` on build files) without an
   explanation in the recipe: they ask what it does. Remove what the build does not need.
 - R8 off: they ask to enable it (`isMinifyEnabled = true` with resource shrinking as needed).
+  `scripts/release_check.py` catches this and a dependency-info block left on, at the recipe's
+  commit; run it before filing.
 - Node from a tarball or curl-pipe installer: they ask for Debian packages.
 - Signing blocks in the APK: the dependency-info block (`dependenciesInfo`) must be off.
 - Extra build entries, disabled entries, or a tag in `commit:`.

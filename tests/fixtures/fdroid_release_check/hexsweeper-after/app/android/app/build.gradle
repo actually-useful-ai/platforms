@@ -1,0 +1,41 @@
+// Excerpt of lukeslp/hexsweeper app/android/app/build.gradle at
+// be30a0f4dc49172c0b41eee64ca1a9db47901386 (1.0.16), "turn on R8 shrinking for release
+// builds", the answer to fdroiddata !57772. Kept: signing, build types, dependenciesInfo.
+android {
+    namespace = "app.hexodus.ios"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId hexsweeperApplicationId
+        versionCode 41
+        versionName "1.0.16"
+    }
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(signingValues['HEXSWEEPER_ANDROID_STORE_FILE'])
+                storePassword signingValues['HEXSWEEPER_ANDROID_STORE_PASSWORD']
+                keyAlias signingValues['HEXSWEEPER_ANDROID_KEY_ALIAS']
+                keyPassword signingValues['HEXSWEEPER_ANDROID_KEY_PASSWORD']
+            }
+        }
+    }
+    buildTypes {
+        release {
+            // Release bytes must not depend on how the source was checked out
+            // (F-Droid rebuilds from a clean clone and compares with the signed file).
+            vcsInfo.include false
+            // R8 removes unused code and resources. Capacitor's own keep rules
+            // cover the two app plugins (@CapacitorPlugin, extends Plugin).
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) signingConfig signingConfigs.release
+        }
+    }
+}
+
+// F-Droid's scanner rejects the Play dependency-metadata signing block in an APK.
+// Play bundles keep theirs (includeInBundle is left at its default).
+android.dependenciesInfo {
+    includeInApk = false
+}
