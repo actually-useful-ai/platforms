@@ -56,6 +56,14 @@ Build one canonical, portable suite for platform delivery and publishing workflo
 - Published the suite to `actually-useful-ai/platforms`, which had remained at
   the pre-consolidation commit while the org token lacked push permission.
 
+### F-Droid main catalog skill (unreleased)
+
+- Added `platforms-fdroid`, grounded in a counted study of 180 merged and 120
+  closed fdroiddata "New App" requests (October and November 2026) rather than
+  in one author's submissions. The skill stops for the owner before every
+  release, merge request, comment and commit to an open request.
+- Added routing evals (`evals/fdroid-*`) for `claude plugin eval`.
+
 ## Architecture
 
 ```text
@@ -70,6 +78,10 @@ suite.toml
 ```
 
 ## Outstanding
+
+- Re-run the F-Droid study (`docs/research/fdroid-new-apps/`) when fdroiddata's
+  review practice or CI versions change, and update `platforms-fdroid`'s
+  evidence reference from it.
 
 - Deeper device packaging (real `.pbw`/APK/ipk builds) once toolchains are present.
 - Vega packaging beyond preflight when the SDK and disk space allow.

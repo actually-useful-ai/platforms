@@ -39,6 +39,9 @@ id = "platforms-pebble"
 [[skills]]
 id = "platforms-web-kiosk"
 
+[[skills]]
+id = "platforms-fdroid"
+
 [[aliases]]
 id = "platforms-android"
 target = "platforms-mobile"

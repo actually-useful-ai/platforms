@@ -40,7 +40,7 @@
       "executable": false,
       "mode": "0644",
       "path": "suite.toml",
-      "sha256": "c570ea19dbeead14de31e0a3c06752780d7f0719a871caf02201ff6f733d22f3"
+      "sha256": "c75356ee04827b517dee8fe9c93344410a2314479d453f8d1db0bf56dc6d3bf8"
     }
   ],
   "inventory": {
@@ -121,7 +121,8 @@
       "platforms-mobile",
       "platforms-kdp",
       "platforms-pebble",
-      "platforms-web-kiosk"
+      "platforms-web-kiosk",
+      "platforms-fdroid"
     ]
   },
   "suite_version": "0.3.0",

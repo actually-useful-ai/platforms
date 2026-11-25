@@ -4,6 +4,29 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- `platforms-fdroid`, a tenth canonical skill for taking an Android app into
+  F-Droid's main catalog: fit check (license, proprietary dependencies, website
+  wrappers, Quality point 6), app preparation (R8, `dependenciesInfo`,
+  `vcsInfo`, deterministic stamps, Fastlane, root `metadata/` conflicts),
+  recipe patterns, local checks with the fdroidserver and ruamel.yaml versions
+  fdroiddata's CI uses, request text and review, with a stop for the owner
+  before every outward step. Two scripts ship with it: `listing_sources.py`
+  (which folders fdroidserver takes listing text from, optionally through
+  fdroidserver itself) and `request_words.py` (words above the checklist).
+- `docs/fdroid-new-app-evidence-2026-11.md`, the study of 180 merged and 120
+  closed "New App" requests the skill's rules are drawn from, with the
+  collection and analysis scripts under `docs/research/fdroid-new-apps/`.
+- Routing evals for the new skill under `evals/` (`claude plugin eval`), and
+  unit tests for its routing contract, stop gates, reference links and scripts
+  (`tests/test_fdroid_skill.py`). The reference-link test covers every skill.
+
+### Changed
+
+- The `platforms` router sends F-Droid main-catalog work to
+  `platforms-fdroid`, and `platforms-mobile` hands it over explicitly.
+
 ### Fixed
 
 - `tools/check_drift.py` no longer reports a clean result when it is given no

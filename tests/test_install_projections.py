@@ -42,7 +42,7 @@ class ProjectionInstallerTests(unittest.TestCase):
         )
 
         self.assertTrue(report["dry_run"])
-        self.assertEqual(report["canonical_count"], 9)
+        self.assertEqual(report["canonical_count"], 10)
         self.assertEqual(report["alias_count"], 15)
         self.assertTrue(report["actions"])
         self.assertTrue(all(not root.exists() for root in roots.values()))

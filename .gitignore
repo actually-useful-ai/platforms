@@ -13,3 +13,6 @@ dist/*
 .env
 .env.*
 !.env.example
+
+# claude plugin eval output
+evals/results/
