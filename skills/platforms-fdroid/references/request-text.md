@@ -29,7 +29,7 @@ In this order, each as short as the app allows:
    - assets or data with no stated license, and where they are listed;
    - a policy exception relied on (Quality point 6: link the author's merged app, or the evidence
      of users);
-   - anything in the recipe a reviewer will otherwise ask about (R8 off and why, a `scanignore`).
+   - anything in the recipe a reviewer will otherwise ask about (a `scanignore`, for example).
 
 Community testers check the app's network traffic against the description, so an undisclosed
 connection becomes a question.

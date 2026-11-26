@@ -1,0 +1,46 @@
+// Excerpt of data-poems/orrery android/app/build.gradle at
+// 5e5eb40772edcbb0d0d6c8c055d90f8f319a3c92, the commit filed as fdroiddata !58981.
+// Kept: the android block's signing and build types, and the dependenciesInfo block.
+apply plugin: 'com.android.application'
+
+android {
+    namespace = "solar.orrery.android"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "solar.orrery.android"
+        versionCode releaseVersionCode
+        versionName releaseVersionName
+    }
+    signingConfigs {
+        release {
+            if (releaseSigningConfigured) {
+                storeFile configuredStoreFile
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            // Keep diagnostic/device tests separate from the signed store candidate.
+            applicationIdSuffix ".debug"
+        }
+        release {
+            // Release bytes must not depend on how the source was checked out:
+            // F-Droid rebuilds from a clean clone and compares with the signed file.
+            vcsInfo.include false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseSigningConfigured) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+// F-Droid's scanner rejects the Play dependency-metadata signing block in an
+// APK. Store bundles keep theirs (includeInBundle stays at its default).
+android.dependenciesInfo {
+    includeInApk = false
+}

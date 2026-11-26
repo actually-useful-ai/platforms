@@ -45,8 +45,21 @@ it with the policy line and stop.
 
 ## 2. Prepare the app (in the app's own repository)
 
-- **R8 on** for the release build (`isMinifyEnabled = true`; resource shrinking only if it helps).
+- **R8 on** for the release build (`isMinifyEnabled = true`, `minifyEnabled true` in Groovy;
+  resource shrinking only if it helps). It is the change maintainers ask for most (30 of 180
+  merged requests).
 - **Signing blocks off:** `dependenciesInfo { includeInApk = false; includeInBundle = false }`.
+- **Blocker: run the release check at the exact commit the recipe names.**
+  `scripts/release_check.py <checkout> --subdir <subdir> --commit <commit> [--flavor <flavor>]`
+  reads the module's build file at that commit and fails when the release build has R8 off or
+  `dependenciesInfo` leaves `includeInApk` on. Pass `--apk <signed reference APK>` when the app is
+  signed outside Gradle; the APK then decides the dependency-block check. Do not file the request, and do not
+  add a build to an open one, while it reports FAIL or UNKNOWN. UNKNOWN means the value comes from
+  somewhere the script can't read; settle it by hand and tell the owner how.
+- **R8 goes in the release that gets filed.** Turning it on changes the APK, so it needs a new
+  version and a new signed release. Build the minified release and run it on an emulator first
+  (launch, the main screens, anything that uses reflection, such as plugins or serialization) before
+  the owner signs it.
 - **vcsInfo:** build the reference APK from a clean checkout of the tagged commit, so the bundled
   `version-control-info.textproto` names that commit. Set `vcsInfo.include false` only if that is
   impossible.
@@ -94,7 +107,7 @@ Follow [references/request-text.md](references/request-text.md): the fdroiddata 
 headings, a short description sized to the app, two to four screenshots, one paragraph on why it
 exists and what it adds over a named catalog app, then one plain sentence per fact that could change
 the decision (network services and when each is contacted, anti-features, a missing license, a
-policy exception, R8 off). Nothing argued in advance, no offers to remove features. Count with
+policy exception). Nothing argued in advance, no offers to remove features. Count with
 `scripts/request_words.py`. Copy the checklist from the current template and tick only what is true.
 
 **Stop: show the owner the exact title, text, recipe sha256 and pipeline link before opening the
@@ -104,7 +117,7 @@ merge request.** Open it only on an explicit yes for that text.
 
 Follow [references/review.md](references/review.md). Fix first, get the pipeline green, then reply
 under the comment in a sentence or two. A new version while the request is open replaces the single
-build entry after the owner has released it.
+build entry after the owner has released it and `scripts/release_check.py` passes at its commit.
 
 **Stop: before posting any reply or committing any change to the open request, show the owner the
 exact text or diff.** Never merge, close or reopen the request, never push to it without approval,
