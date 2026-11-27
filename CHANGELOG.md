@@ -4,6 +4,13 @@ All notable changes to the Platforms and Publishing Suite are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- Color-vision checks require simulated deuteranopia only. Protanopia,
+  tritanopia and grayscale are optional, except the KDP grayscale check,
+  since many e-readers show grayscale only.
+- Python files no longer need a top-of-file purpose banner.
+
 ### Added
 
 - `platforms-fdroid` ships `scripts/release_check.py`, which reads the Android

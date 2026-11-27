@@ -24,5 +24,5 @@ Prepare store screenshots, icons, descriptions, and age ratings without uploadin
   keep the device evidence beside the claim.
 - Prefer reproducible icon/version generation over hand-edited one-offs.
 - Keep captions and alt text with every marketing image.
-- Check icons and screenshots under simulated deuteranopia, protanopia, and grayscale; a feature shown only by a red or green highlight must read without hue.
+- Check icons and screenshots under simulated deuteranopia; a feature shown only by a red or green highlight must read without hue.
 - Do not upload assets; stage locally and hand off a checklist.

@@ -23,7 +23,7 @@ For F-Droid's main catalog (fdroiddata recipe, reproducible build, "New app" req
 - Inspect APK/AAB contents and reproducible version values before store staging.
 - Run the `adb` doctor and collect install/device evidence before marking `device-tested`.
 - Test TalkBack labels, logical focus, keyboard alternatives, and adequate touch targets.
-- Check states, badges, and swipe actions without hue: use Android's color correction or simulated deuteranopia and grayscale, and pair every color with an icon or label.
+- Check states, badges, and swipe actions without hue: use Android's color correction or simulated deuteranopia, and pair every color with an icon or label.
 
 ## Fire tablet differences
 

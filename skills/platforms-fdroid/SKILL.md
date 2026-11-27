@@ -70,7 +70,7 @@ it with the policy line and stop.
 - **Listing:** `fastlane/metadata/android/en-US/` with `title.txt`, `short_description.txt`,
   `full_description.txt`, `changelogs/<versionCode>.txt`, `images/icon.png` and
   `images/phoneScreenshots/`. The description says what the app connects to and when.
-  Screenshots must read without hue: check each under simulated deuteranopia and grayscale and
+  Screenshots must read without hue: check each under simulated deuteranopia and
   pair color with text or shape.
 - **No root `metadata/` folder holding another store's text.** fdroidserver reads
   `metadata/<locale>/` at the repository root after Fastlane, and the last one read wins. Run

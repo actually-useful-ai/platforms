@@ -9,7 +9,6 @@ This repository is maintained by Luke Steuber.
 3. Run the focused RED test before implementation and record the expected failure.
 4. Run the focused test and full suite after implementation.
 5. Update `README.md`, `PROJECT_PLAN.md`, and `CHANGELOG.md` when project behavior or goals change.
-6. Add a top-of-file banner to every Python file with File Purpose, Primary Functions/Classes, and Inputs/Outputs.
 
 ## Sources of truth
 
